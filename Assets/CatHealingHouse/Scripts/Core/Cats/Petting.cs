@@ -5,7 +5,7 @@ using CatHealingHouse.Stray;
 namespace CatHealingHouse.Cats
 {
     /// <summary>확대해서 쓰다듬는 부위 (판 위 옆모습 고양이 기준).</summary>
-    public enum PetZone { None, Head, Cheek, Chin, Chest, Belly, Paw, Tail, Nose, Back }
+    public enum PetZone { None, Head, Cheek, Chin, Chest, Belly, Paw, Tail, Nose, Back, Rump }
 
     /// <summary>그 부위를 만졌을 때의 기분.</summary>
     public enum PetFeel { Love, Like, Meh, Dislike }
@@ -34,6 +34,10 @@ namespace CatHealingHouse.Cats
         public double StrayBonusAffection = 3;
         public double StrayAnnoyPenalty = 1;
         public double NoseBoopMood = 0.5;
+        /// <summary>만족도가 이만큼 차면 스스로 발라당 (한 번에 한 번).</summary>
+        public double RollAt = 0.5;
+        /// <summary>배를 안 좋아하는 고양이가 발라당했을 때 배를 만지면 (배 함정): 짜증 +이만큼, 뒷발 팡팡 하고 다시 일어남.</summary>
+        public double TrapAnnoy = 0.35;
     }
 
     /// <summary>성격별 좋아하는 곳·싫어하는 곳.</summary>
@@ -47,6 +51,7 @@ namespace CatHealingHouse.Cats
                 case PetZone.Cheek: return PetFeel.Love;
                 case PetZone.Chin:
                 case PetZone.Back:
+                case PetZone.Rump:
                 case PetZone.Chest: return PetFeel.Like;
                 case PetZone.Nose: return PetFeel.Meh;
                 default: return PetFeel.Dislike; // 배, 앞발, 꼬리
@@ -60,10 +65,10 @@ namespace CatHealingHouse.Cats
             {
                 case "sleepyhead": if (z == PetZone.Belly) return PetFeel.Like; if (z == PetZone.Chin) return PetFeel.Love; break;
                 case "tower_king": if (z == PetZone.Chest) return PetFeel.Meh; break;
-                case "energizer": if (z == PetZone.Paw || z == PetZone.Tail) return PetFeel.Meh; if (z == PetZone.Cheek) return PetFeel.Like; if (z == PetZone.Back) return PetFeel.Love; break;
+                case "energizer": if (z == PetZone.Paw || z == PetZone.Tail) return PetFeel.Meh; if (z == PetZone.Cheek) return PetFeel.Like; if (z == PetZone.Back || z == PetZone.Rump) return PetFeel.Love; break;
                 case "foodie": if (z == PetZone.Chin) return PetFeel.Love; if (z == PetZone.Belly) return PetFeel.Meh; break;
-                case "shy": if (z == PetZone.Head) return PetFeel.Like; if (z == PetZone.Chest) return PetFeel.Meh; break;
-                case "curious": if (z == PetZone.Nose || z == PetZone.Paw) return PetFeel.Like; break;
+                case "shy": if (z == PetZone.Head) return PetFeel.Like; if (z == PetZone.Chest || z == PetZone.Rump) return PetFeel.Meh; break;
+                case "curious": if (z == PetZone.Nose || z == PetZone.Paw) return PetFeel.Like; if (z == PetZone.Rump) return PetFeel.Love; break;
             }
             return f;
         }
@@ -73,7 +78,11 @@ namespace CatHealingHouse.Cats
         {
             var f = Base(z);
             if (t == Temperament.Sassy) return f == PetFeel.Love ? PetFeel.Like : f == PetFeel.Like ? PetFeel.Meh : PetFeel.Dislike;
-            if (t == Temperament.Cuddly) return f == PetFeel.Dislike ? (z == PetZone.Tail ? PetFeel.Dislike : PetFeel.Meh) : f == PetFeel.Meh ? PetFeel.Like : PetFeel.Love;
+            if (t == Temperament.Cuddly)
+            {
+                if (z == PetZone.Belly) return PetFeel.Like; // 개냥이는 배도 내준다
+                return f == PetFeel.Dislike ? (z == PetZone.Tail ? PetFeel.Dislike : PetFeel.Meh) : f == PetFeel.Meh ? PetFeel.Like : PetFeel.Love;
+            }
             return f;
         }
     }
@@ -93,6 +102,14 @@ namespace CatHealingHouse.Cats
         public PetEnd End;
         public PetZone LastZone;
         public PetFeel LastFeel = PetFeel.Meh;
+        /// <summary>발라당 누워서 배를 보여주는 중.</summary>
+        public bool BellyUp;
+        /// <summary>이번에 이미 발라당했다 (한 번만).</summary>
+        public bool Rolled;
+        /// <summary>발라당했을 때 배를 만져도 좋아하는 고양이 (아니면 배 함정).</summary>
+        public bool BellyLover;
+        /// <summary>배 함정에 걸려 뒷발로 차인 횟수 (화면 연출용).</summary>
+        public int Kicks;
         // 보상 결과 (끝날 때 채워짐)
         public long HeartsGiven;
         public double AffectionGiven;
@@ -156,7 +173,10 @@ namespace CatHealingHouse.Cats
                 feel = z => PetPrefs.ForPersonality(id, z);
             }
             cat.Held = true;
-            return new PetSession(cat, stray, feel, GainScaleOf(cat));
+            var s = new PetSession(cat, stray, feel, GainScaleOf(cat));
+            var bf = feel(PetZone.Belly);
+            s.BellyLover = bf == PetFeel.Love || bf == PetFeel.Like;
+            return s;
         }
 
         /// <summary>length 는 화면 폭을 1 로 한 문지른 길이.</summary>
@@ -164,6 +184,21 @@ namespace CatHealingHouse.Cats
         {
             if (s == null || s.Done || zone == PetZone.None || length <= 0) return PetFeel.Meh;
             var f = s.FeelOf(zone);
+            // 발라당 중에 배: 좋아하는 고양이는 최고, 아니면 배 함정 (뒷발 팡팡 하고 일어남)
+            if (zone == PetZone.Belly && s.BellyUp)
+            {
+                if (s.BellyLover) f = PetFeel.Love;
+                else
+                {
+                    s.LastZone = zone;
+                    s.LastFeel = PetFeel.Dislike;
+                    s.BellyUp = false;
+                    s.Kicks++;
+                    s.Annoyance = Math.Min(1, s.Annoyance + Tuning.TrapAnnoy);
+                    if (s.Annoyance >= 1) Finish(s, PetEnd.Annoyed);
+                    return PetFeel.Dislike;
+                }
+            }
             s.LastZone = zone;
             s.LastFeel = f;
             double scale = f == PetFeel.Love ? 1 : f == PetFeel.Like ? Tuning.LikeScale : f == PetFeel.Meh ? Tuning.MehScale : 0;
@@ -186,6 +221,8 @@ namespace CatHealingHouse.Cats
                 s.Cat.PetFatigueAt = Now;
             }
             if (annoy > 0) s.Annoyance = Math.Min(1, s.Annoyance + length * Tuning.AnnoyPerUnit * annoy);
+            // 만족도가 반쯤 차면 스스로 발라당
+            if (!s.Rolled && s.Satisfaction >= Tuning.RollAt && s.Satisfaction < 1 - 1e-9) { s.Rolled = true; s.BellyUp = true; }
 
             if (s.Annoyance >= 1) Finish(s, PetEnd.Annoyed);
             else if (s.Satisfaction >= 1 - 1e-9) Finish(s, PetEnd.Satisfied);
@@ -215,6 +252,7 @@ namespace CatHealingHouse.Cats
         private void Finish(PetSession s, PetEnd end)
         {
             s.End = end;
+            s.BellyUp = false;
             var cat = s.Cat;
             cat.Held = false;
             if (end == PetEnd.Satisfied)

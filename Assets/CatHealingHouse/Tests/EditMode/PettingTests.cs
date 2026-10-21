@@ -85,7 +85,8 @@ namespace CatHealingHouse.Tests
             Assert.AreEqual(PetFeel.Dislike, PetPrefs.ForPersonality("normal", PetZone.Belly));
             Assert.AreEqual(PetFeel.Like, PetPrefs.ForPersonality("sleepyhead", PetZone.Belly));
             Assert.AreEqual(PetFeel.Like, PetPrefs.ForStray(Temperament.Sassy, PetZone.Head));
-            Assert.AreEqual(PetFeel.Meh, PetPrefs.ForStray(Temperament.Cuddly, PetZone.Belly));
+            Assert.AreEqual(PetFeel.Like, PetPrefs.ForStray(Temperament.Cuddly, PetZone.Belly), "개냥이는 배도 내준다");
+            Assert.AreEqual(PetFeel.Like, PetPrefs.ForPersonality("normal", PetZone.Rump));
             Assert.AreEqual(PetFeel.Dislike, PetPrefs.ForStray(Temperament.Cuddly, PetZone.Tail));
         }
 
@@ -132,5 +133,47 @@ namespace CatHealingHouse.Tests
             Assert.AreEqual(PetEnd.Stopped, s.End);
             Assert.IsFalse(cat.Held);
         }
-    }
+    
+
+        [Test]
+        public void RollsOverAtHalfSatisfaction()
+        {
+            var cat = Resident();
+            var s = _pet.Begin(cat);
+            Assert.IsFalse(s.BellyUp);
+            while (s.Satisfaction < _pet.Tuning.RollAt) _pet.Stroke(s, PetZone.Head, 0.05);
+            Assert.IsTrue(s.BellyUp, "반쯤 차면 스스로 발라당");
+            Assert.IsTrue(s.Rolled);
+        }
+
+        [Test]
+        public void BellyLoverEnjoysBellyWhenRolled()
+        {
+            var cat = Resident(CatPersonalities.Sleepyhead);
+            var s = _pet.Begin(cat);
+            Assert.IsTrue(s.BellyLover);
+            while (!s.BellyUp) _pet.Stroke(s, PetZone.Head, 0.05);
+            double before = s.Satisfaction;
+            Assert.AreEqual(PetFeel.Love, _pet.Stroke(s, PetZone.Belly, 0.1));
+            Assert.Greater(s.Satisfaction, before);
+            Assert.IsTrue(s.BellyUp, "좋아하면 계속 누워 있다");
+        }
+
+        [Test]
+        public void BellyTrapKicksAndGetsUp()
+        {
+            var cat = Resident();
+            var s = _pet.Begin(cat);
+            Assert.IsFalse(s.BellyLover);
+            while (!s.BellyUp) _pet.Stroke(s, PetZone.Head, 0.05);
+            double annoy = s.Annoyance;
+            Assert.AreEqual(PetFeel.Dislike, _pet.Stroke(s, PetZone.Belly, 0.01));
+            Assert.AreEqual(1, s.Kicks);
+            Assert.IsFalse(s.BellyUp, "뒷발 팡팡 하고 일어난다");
+            Assert.Greater(s.Annoyance, annoy + 0.3);
+            // 한 세션에 발라당은 한 번만
+            while (!s.Done && s.Satisfaction < 0.99) _pet.Stroke(s, PetZone.Head, 0.05);
+            Assert.IsFalse(s.BellyUp);
+        }
+}
 }

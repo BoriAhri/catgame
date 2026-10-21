@@ -15,6 +15,8 @@ namespace CatHealingHouse.View.Art
         Blush, EyesHalf, EyesHappy,
         // 꼬리 끝 마디 (꼬리에 매달려 한 박자 늦게 휜다)
         TailTip,
+        // 발라당 (등을 대고 누워 배를 보이는 몸 + 위로 든 네 발 + 꼬리. 이때 평소 몸·다리·꼬리는 숨긴다)
+        BellyBody,
     }
 
     /// <summary>
@@ -35,6 +37,7 @@ namespace CatHealingHouse.View.Art
             { CatPart.Shadow, new Vector2(0.45f, 0.10f) },
             { CatPart.Tail, new Vector2(0.22f, 0.28f) },
             { CatPart.TailTip, new Vector2(0.13f, 0.40f) },
+            { CatPart.BellyBody, new Vector2(0.47f, 0.10f) },
             { CatPart.Body, new Vector2(0.44f, 0.14f) },
             { CatPart.Head, new Vector2(0.58f, 0.40f) },
             { CatPart.EarL, new Vector2(0.545f, 0.655f) },
@@ -68,7 +71,32 @@ namespace CatHealingHouse.View.Art
         }
 
         /// <summary>그리기 순서 (작을수록 뒤). 꼬리 끝은 꼬리 뿌리 뒤.</summary>
-        public static int Order(CatPart p) => p == CatPart.TailTip ? 0 : p == CatPart.Shadow ? -1 : (int)p;
+        public static int Order(CatPart p) => p == CatPart.TailTip ? 0 : p == CatPart.Shadow ? -1 : p == CatPart.BellyBody ? (int)CatPart.Body : (int)p;
+
+        // 발라당 몸 모양
+        private static readonly Shape BellyTorso = Ellipse(0.42f, 0.20f, 0.25f, 0.115f);
+        private static Shape UpLeg(float x, bool front) => front
+            ? Union(Capsule(x, 0.25f, x + 0.04f, 0.35f, 0.038f), Capsule(x + 0.04f, 0.35f, x, 0.40f, 0.035f), Circle(x - 0.004f, 0.405f, 0.038f))
+            : Union(Capsule(x, 0.25f, x - 0.035f, 0.36f, 0.043f), Capsule(x - 0.035f, 0.36f, x + 0.005f, 0.42f, 0.038f), Circle(x + 0.008f, 0.425f, 0.04f));
+        private static readonly Shape BellyTail = Union(Capsule(0.19f, 0.15f, 0.07f, 0.12f, 0.04f), Capsule(0.07f, 0.12f, 0.03f, 0.19f, 0.036f));
+
+        /// <summary>발라당 중의 부위 (몸 루트 기준 좌표, 머리는 머리 뼈 기준).</summary>
+        public static Cats.PetZone BellyZoneAt(Vector2 root, Vector2 head)
+        {
+            const float pad = 0.02f;
+            if (EarLShape(head.x, head.y) < pad || EarRShape(head.x, head.y) < pad) return Cats.PetZone.Head;
+            if (HeadShape(head.x, head.y) < pad)
+            {
+                if (head.y > 0.555f) return Cats.PetZone.Head;
+                if (head.x > 0.70f && head.y < 0.50f) return Cats.PetZone.Chin;
+                return Cats.PetZone.Cheek;
+            }
+            foreach (var x in new[] { 0.56f, 0.51f }) if (UpLeg(x, true)(root.x, root.y) < pad) return Cats.PetZone.Paw;
+            foreach (var x in new[] { 0.27f, 0.32f }) if (UpLeg(x, false)(root.x, root.y) < pad) return Cats.PetZone.Paw;
+            if (BellyTorso(root.x, root.y) < pad) return root.y > 0.205f ? Cats.PetZone.Belly : Cats.PetZone.Back;
+            if (BellyTail(root.x, root.y) < pad) return Cats.PetZone.Tail;
+            return Cats.PetZone.None;
+        }
 
         private static readonly Color Line = CuteArt.Line;
         private static readonly Color Pink = Col("#F4A9A8");
@@ -125,6 +153,7 @@ namespace CatHealingHouse.View.Art
             }
             if (BodyShape(body.x, body.y) < pad)
             {
+                if (body.x < 0.30f && body.y > 0.25f) return Cats.PetZone.Rump; // 꼬리 뿌리 위 허리 끝
                 if (body.y > 0.33f) return Cats.PetZone.Back;
                 if (body.x > 0.58f && body.y > 0.2f) return Cats.PetZone.Chest;
                 if (body.y < 0.225f) return Cats.PetZone.Belly;
@@ -307,6 +336,55 @@ namespace CatHealingHouse.View.Art
                     c.Fill(Ellipse(0.572f, 0.478f, 0.042f, 0.026f), A(Col("#F48A93"), 0.7f));
                     c.Fill(Ellipse(0.758f, 0.478f, 0.042f, 0.026f), A(Col("#F48A93"), 0.7f));
                     break;
+
+                case CatPart.BellyBody:
+                {
+                    // 등을 대고 누운 몸: 위가 배, 네 발은 위로 꼬부리고 꼬리는 바닥에
+                    c.Bounds = new Rect(0.0f, 0.04f, 0.72f, 0.46f);
+                    var farCol = Shade(fur, 0.86f);
+                    var lineCol = dark ? Tint(fur, 0.3f) : Line;
+                    c.Fill(BellyTail, fur, Line, w);
+                    if (look.Kind == CatPattern.Tabby) c.Fill(Intersect(Union(Capsule(0.12f, 0.09f, 0.13f, 0.17f, 0.012f), Capsule(0.07f, 0.09f, 0.06f, 0.16f, 0.011f)), BellyTail), look.Pattern);
+                    if (look.Kind == CatPattern.Point || look.Kind == CatPattern.Calico) c.Fill(Intersect(Circle(0.035f, 0.19f, 0.05f), BellyTail), look.Kind == CatPattern.Point ? look.Pattern : DarkPatch);
+                    // 먼 쪽 다리 (몸 뒤)
+                    c.Fill(UpLeg(0.51f, true), farCol, lineCol, w);
+                    c.Fill(UpLeg(0.32f, false), farCol, lineCol, w);
+                    // 몸통
+                    c.Fill(BellyTorso, fur, Line, w);
+                    c.Fill(Intersect(BellyTorso, Ellipse(0.42f, 0.10f, 0.3f, 0.05f)), A(Shade(fur, 0.8f), 0.45f));
+                    if (look.Kind == CatPattern.Tabby)
+                        c.Fill(Intersect(Union(Capsule(0.28f, 0.09f, 0.29f, 0.17f, 0.015f), Capsule(0.36f, 0.09f, 0.365f, 0.17f, 0.015f), Capsule(0.44f, 0.09f, 0.44f, 0.17f, 0.015f), Capsule(0.52f, 0.09f, 0.515f, 0.16f, 0.014f)), BellyTorso), look.Pattern);
+                    if (look.Kind == CatPattern.Calico)
+                    {
+                        c.Fill(Intersect(Ellipse(0.31f, 0.16f, 0.1f, 0.07f), BellyTorso), look.Pattern);
+                        c.Fill(Intersect(Ellipse(0.52f, 0.13f, 0.07f, 0.05f), BellyTorso), DarkPatch);
+                    }
+                    // 배 (위쪽, 밝고 보송보송)
+                    var bellyCol = look.Kind == CatPattern.Tuxedo ? Color.white : Tint(fur, dark ? 0.22f : 0.6f);
+                    c.Fill(Intersect(BellyTorso, Ellipse(0.44f, 0.275f, look.Kind == CatPattern.Tuxedo ? 0.2f : 0.17f, 0.075f)), bellyCol);
+                    c.Fill(Intersect(BellyTorso, Union(
+                        Triangle(new Vector2(0.36f, 0.30f), new Vector2(0.38f, 0.33f), new Vector2(0.40f, 0.30f), 0.004f),
+                        Triangle(new Vector2(0.44f, 0.305f), new Vector2(0.46f, 0.335f), new Vector2(0.48f, 0.305f), 0.004f))), bellyCol);
+                    c.Fill(Intersect(BellyTorso, Ellipse(0.42f, 0.29f, 0.12f, 0.02f)), A(Color.white, 0.22f));
+                    // 가까운 쪽 다리 (몸 앞)
+                    foreach (var near in new[] { true, false })
+                    {
+                        float x = near ? 0.56f : 0.27f;
+                        var leg = UpLeg(x, near);
+                        c.Fill(leg, fur, lineCol, w);
+                        var paw = near ? Circle(x - 0.004f, 0.405f, 0.038f) : Circle(x + 0.008f, 0.425f, 0.04f);
+                        if (look.Kind == CatPattern.Tuxedo) c.Fill(Intersect(paw, leg), Color.white);
+                        if (look.Kind == CatPattern.Point) c.Fill(Intersect(paw, leg), look.Pattern);
+                        if (look.Kind == CatPattern.Tabby) c.Fill(Intersect(Capsule(x - 0.06f, 0.32f, x + 0.06f, 0.33f, 0.009f), leg), look.Pattern);
+                        // 위를 향한 젤리 (분홍 발바닥)
+                        var pc = near ? new Vector2(x - 0.004f, 0.415f) : new Vector2(x + 0.008f, 0.435f);
+                        c.Fill(Ellipse(pc.x, pc.y, 0.017f, 0.012f), A(Pink, 0.95f));
+                        c.Fill(Circle(pc.x - 0.018f, pc.y + 0.017f, 0.007f), A(Pink, 0.95f));
+                        c.Fill(Circle(pc.x, pc.y + 0.024f, 0.007f), A(Pink, 0.95f));
+                        c.Fill(Circle(pc.x + 0.018f, pc.y + 0.017f, 0.007f), A(Pink, 0.95f));
+                    }
+                    break;
+                }
 
                 case CatPart.EyesClosed:
                     c.Bounds = new Rect(0.55f, 0.48f, 0.22f, 0.11f);

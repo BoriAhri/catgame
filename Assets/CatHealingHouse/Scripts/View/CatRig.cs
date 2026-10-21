@@ -11,6 +11,9 @@ namespace CatHealingHouse.View
     /// <summary>쓰다듬을 때 눈 (0 평소, 1 반쯤 감음, 2 웃는 눈, 3 감음).</summary>
     public enum PetEyes { Normal, Half, Happy, Closed }
 
+    /// <summary>쓰다듬을 때 자세 (머리 치켜세우기, 턱 치켜세우기, 엉덩이 치켜세우기). 발라당은 PetBelly 로 따로.</summary>
+    public enum PetPose { None, HeadLift, ChinLift, RumpUp }
+
     /// <summary>
     /// 임시 뼈대(컷아웃) 고양이. 부위별 스프라이트를 관절에 매달고 코드로 회전·이동해서 움직인다.
     /// 2D Animation 패키지의 진짜 리깅으로 바꿀 때도 부위 이름과 관절 위치는 그대로 쓴다.
@@ -65,12 +68,23 @@ namespace CatHealingHouse.View
             _renderers[CatPart.EyesHalf].enabled = false;
             _renderers[CatPart.EyesHappy].enabled = false;
             _renderers[CatPart.Blush].color = new Color(1, 1, 1, 0);
+            if (_renderers.ContainsKey(CatPart.BellyBody)) _renderers[CatPart.BellyBody].enabled = false;
         }
 
         // ── 쓰다듬기 반응 (PetTouch 가 목표를 정하면 부드럽게 따라간다) ──
         public bool PetActive;
         public PetEyes PetEyes;
         public float PetTilt, PetEars, PetPurr, PetBlush, PetTail = 1f;
+        public PetPose PetPose;
+        /// <summary>발라당 (등을 대고 누워 배를 보인다).</summary>
+        public bool PetBelly;
+        /// <summary>뒷발 팡팡 (배 함정). 0~1, 저절로 줄어든다.</summary>
+        public float PetKick;
+        private float _wLift, _wChin, _wRump, _wBelly;
+        /// <summary>지금 발라당 그림이 보이는 중 (부위 판정이 달라진다).</summary>
+        public bool BellyShown => _wBelly > 0.5f;
+        private bool _costumeWorn;
+        private CatPart _costumePart;
         private float _pTilt, _pEars, _pPurr, _pBlush, _pTail = 1f, _pTailT, _pWeight;
 
         /// <summary>뼈 기준 캔버스 좌표 (쓰다듬는 부위 판정용). 방향 뒤집기는 transform 이 처리한다.</summary>
@@ -87,6 +101,8 @@ namespace CatHealingHouse.View
         /// <summary>코스튬을 입힌다 (null 이면 벗김). 그림 피벗이 관절이라 부위에 매달기만 하면 제자리에 맞는다.</summary>
         public void SetCostume(Sprite sprite, CatPart part, int order, Material material)
         {
+            _costumeWorn = sprite != null;
+            _costumePart = part;
             if (sprite == null) { if (_costume != null) _costume.enabled = false; return; }
             if (_costume == null)
             {
@@ -321,6 +337,68 @@ namespace CatHealingHouse.View
                 }
                 if (PetActive && PetEyes != PetEyes.Normal) { eyes = (int)PetEyes; eyesClosed = false; }
             }
+            // 쓰다듬기 자세: 머리·턱 치켜세우기, 엉덩이 치켜세우기, 발라당
+            float kp = 1f - Mathf.Exp(-dt * 8f);
+            _wLift = Mathf.Lerp(_wLift, PetActive && PetPose == PetPose.HeadLift ? 1f : 0f, kp);
+            _wChin = Mathf.Lerp(_wChin, PetActive && PetPose == PetPose.ChinLift ? 1f : 0f, kp);
+            _wRump = Mathf.Lerp(_wRump, PetActive && PetPose == PetPose.RumpUp ? 1f : 0f, kp);
+            _wBelly = Mathf.MoveTowards(_wBelly, PetActive && PetBelly ? 1f : 0f, dt * 3.5f);
+            var headT = _bones[CatPart.Head];
+            if (_wLift > 0.01f || _wChin > 0.01f)
+            {
+                // 손에 머리를 밀어붙이듯 고개를 든다 (턱이면 더 젖힌다)
+                headT.localRotation = headT.localRotation * Quaternion.Euler(0, 0, 20f * _wLift + 32f * _wChin);
+                headT.localPosition += new Vector3(0.006f * _wChin, 0.014f * _wLift + 0.022f * _wChin, 0);
+            }
+            if (_wRump > 0.01f)
+            {
+                // 엉덩이만 쭉: 몸 앞을 낮추고 뒤를 들고, 뒷다리를 펴고, 꼬리는 꼿꼿이
+                var b = _bones[CatPart.Body];
+                b.localRotation = b.localRotation * Quaternion.Euler(0, 0, -16f * _wRump);
+                b.localPosition += new Vector3(0, 0.018f * _wRump, 0);
+                float lift = 0.06f * _wRump;
+                foreach (var leg in new[] { CatPart.LegBackNear, CatPart.LegBackFar })
+                {
+                    var l = _bones[leg];
+                    l.localPosition += new Vector3(0, lift, 0);
+                    l.localScale = new Vector3(1f, (0.115f + lift) / 0.115f, 1f);
+                    _renderers[leg].enabled = true;
+                }
+                var tl = _bones[CatPart.Tail];
+                tl.localPosition += new Vector3(0.01f * _wRump, 0.075f * _wRump, 0);
+                tl.localRotation = Quaternion.Slerp(tl.localRotation, Quaternion.Euler(0, 0, -45f + Mathf.Sin(t * 3f) * 4f), _wRump);
+                if (_bones.ContainsKey(CatPart.TailTip)) _bones[CatPart.TailTip].localRotation = Quaternion.Slerp(_bones[CatPart.TailTip].localRotation, Quaternion.Euler(0, 0, -8f), _wRump);
+                headT.localPosition += new Vector3(0, -0.03f * _wRump, 0);
+                foreach (var leg in new[] { CatPart.LegFrontNear, CatPart.LegFrontFar }) { var lf = _bones[leg]; lf.localScale = new Vector3(1f, 1f - 0.15f * _wRump, 1f); }
+                headT.localRotation = headT.localRotation * Quaternion.Euler(0, 0, -6f * _wRump);
+            }
+            if (_wBelly > 0.001f && _renderers.ContainsKey(CatPart.BellyBody))
+            {
+                // 발라당: 몸·다리·꼬리를 발라당 그림으로 바꾸고, 머리는 거꾸로 젖혀 몸 오른쪽 끝에
+                float e = _wBelly * _wBelly * (3f - 2f * _wBelly);
+                headT.localPosition = Vector3.Lerp(headT.localPosition, _restPos[CatPart.Head] + new Vector3(0.24f, -0.105f, 0), e);
+                headT.localRotation = Quaternion.Slerp(headT.localRotation, Quaternion.Euler(0, 0, 115f + Mathf.Sin(t * 1.3f) * 4f), e);
+                var bb = _bones[CatPart.BellyBody];
+                float breathe = 1f + Mathf.Sin(t * 1.8f) * 0.02f;
+                bb.localScale = new Vector3(1f, (0.75f + 0.25f * e) * breathe, 1f);
+                if (PetKick > 0f)
+                {
+                    bb.localRotation = Quaternion.Euler(0, 0, Mathf.Sin(t * 45f) * 7f * PetKick);
+                    bb.localPosition += new Vector3(Mathf.Sin(t * 37f) * 0.01f * PetKick, 0, 0);
+                }
+            }
+            if (PetKick > 0f) PetKick = Mathf.Max(0f, PetKick - dt * 1.6f);
+            bool bodyOn = !BellyShown;
+            if (_renderers.ContainsKey(CatPart.BellyBody))
+            {
+                _renderers[CatPart.BellyBody].enabled = !bodyOn;
+                _renderers[CatPart.Body].enabled = bodyOn;
+                _renderers[CatPart.Tail].enabled = bodyOn;
+                if (_renderers.ContainsKey(CatPart.TailTip)) _renderers[CatPart.TailTip].enabled = bodyOn;
+                if (!bodyOn) foreach (var leg in new[] { CatPart.LegFrontNear, CatPart.LegFrontFar, CatPart.LegBackNear, CatPart.LegBackFar }) _renderers[leg].enabled = false;
+                if (_costume != null && _costumeWorn) _costume.enabled = bodyOn || _costumePart == CatPart.Head;
+            }
+
             _renderers[CatPart.Blush].color = new Color(1, 1, 1, Mathf.Clamp01(_pBlush));
             _renderers[CatPart.EyesOpen].enabled = !eyesClosed && eyes == 0;
             _renderers[CatPart.EyesClosed].enabled = eyesClosed || eyes == 3;

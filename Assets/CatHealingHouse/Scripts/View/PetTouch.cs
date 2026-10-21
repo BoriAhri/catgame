@@ -31,6 +31,7 @@ namespace CatHealingHouse.View
         private float _lastStrokeAt = -99f, _lastHeartAt, _lastVeinAt, _lastHissAt = -99f, _lastSayAt = -99f, _endAt;
         private bool _ending;
         private PetFeel _lastSaidFeel = (PetFeel)(-1);
+        private float _kickHoldUntil;
         private Transform _bar;
         private SpriteRenderer _barBg, _barFill, _barAnnoy;
 
@@ -85,7 +86,11 @@ namespace CatHealingHouse.View
             if (zone == PetZone.None) return;
 
             double before = Session.Satisfaction;
+            bool wasBelly = Session.BellyUp;
+            int kicks = Session.Kicks;
             Petting.Stroke(Session, zone, len);
+            if (Session.BellyUp && !wasBelly) OnRoll();
+            if (Session.Kicks > kicks) OnKick();
             _lastStrokeAt = Time.time;
             bool gained = Session.Satisfaction > before;
             var feel = Session.LastFeel;
@@ -127,6 +132,7 @@ namespace CatHealingHouse.View
         {
             var rig = cv.Rig;
             if (rig == null || !rig.gameObject.activeInHierarchy) return PetZone.None;
+            if (rig.BellyShown) return CatParts.BellyZoneAt(rig.CanvasAtRoot(world), rig.CanvasAt(world, CatPart.Head));
             return CatParts.ZoneAt(rig.CanvasAt(world, CatPart.Head), rig.CanvasAt(world, CatPart.Body), rig.CanvasAt(world, CatPart.Tail), rig.CanvasAtRoot(world));
         }
 
@@ -138,8 +144,9 @@ namespace CatHealingHouse.View
                 case PetZone.Cheek: return "볼 긁어 주는 거 좋아해요";
                 case PetZone.Chin: return "턱 밑이 제일 좋대요";
                 case PetZone.Back: return "등 쓸어 주는 거 좋아해요";
+                case PetZone.Rump: return "엉덩이 토닥토닥 최고! 엉덩이를 쭉 올려요";
                 case PetZone.Chest: return "가슴 털이 보송보송";
-                case PetZone.Belly: return "배를 허락했어요!";
+                case PetZone.Belly: return "말랑말랑 배를 허락했어요!";
                 default: return "골골골…";
             }
         }
@@ -178,6 +185,16 @@ namespace CatHealingHouse.View
             var rig = View.Rig;
             rig.PetActive = true;
             rig.PetBlush = (float)s.Satisfaction;
+            rig.PetBelly = (s.BellyUp && !s.Done) || Time.time < _kickHoldUntil;
+            bool strokingNow = Time.time - _lastStrokeAt < 0.35f;
+            rig.PetPose = PetPose.None;
+            if (rig.PetBelly && !s.Done) { rig.PetEyes = PetEyes.Half; rig.PetPurr = strokingNow && s.LastFeel <= PetFeel.Like ? 1f : 0.4f; rig.PetTilt = 0f; rig.PetEars = Time.time < _kickHoldUntil ? 1f : 0f; rig.PetTail = Time.time < _kickHoldUntil ? 3f : 1f; return; }
+            if (strokingNow && !rig.PetBelly && !s.Done && s.LastFeel <= PetFeel.Like)
+            {
+                if (s.LastZone == PetZone.Head) rig.PetPose = PetPose.HeadLift;
+                else if (s.LastZone == PetZone.Chin) rig.PetPose = PetPose.ChinLift;
+                else if (s.LastZone == PetZone.Rump) rig.PetPose = PetPose.RumpUp;
+            }
             if (s.Done)
             {
                 bool happy = s.End == PetEnd.Satisfied;
@@ -265,7 +282,8 @@ namespace CatHealingHouse.View
 
         private void End()
         {
-            if (View != null && View.Rig != null) View.Rig.PetActive = false;
+            if (View != null && View.Rig != null) { View.Rig.PetActive = false; View.Rig.PetBelly = false; View.Rig.PetPose = PetPose.None; }
+            _kickHoldUntil = 0f;
             if (_bar != null) _bar.gameObject.SetActive(false);
             Session = null;
             View = null;
@@ -367,5 +385,31 @@ namespace CatHealingHouse.View
             _vein = Sprite.Create(tex, new Rect(0, 0, 96, 96), new Vector2(0.5f, 0.5f), 96, 0, SpriteMeshType.FullRect);
             return _vein;
         }
-    }
+    
+
+        /// <summary>만족도가 반쯤 차서 스스로 발라당.</summary>
+        private void OnRoll()
+        {
+            var n = View.Cat.Name;
+            SoundKit.Play("meow", 0.6f, 1.15f);
+            SoundKit.Play("pop", 0.5f, 0.8f);
+            Say?.Invoke($"{n}가 발라당! 배를 보여 줬어요");
+            _lastSayAt = Time.time;
+            for (int i = 0; i < 4; i++)
+                Spawn(CuteArt.Item(ItemKind.Heart), View.BodyCenter, new Vector3(UnityEngine.Random.Range(-0.5f, 0.5f), 1f, 0) * CellSize * 0.7f, 1f, CellSize * 0.14f);
+        }
+
+        /// <summary>배 함정: 배를 안 좋아하는 고양이가 발라당했을 때 배를 만지면 뒷발로 팡팡 차고 일어난다.</summary>
+        private void OnKick()
+        {
+            var rig = View.Rig;
+            rig.PetKick = 1f;
+            _kickHoldUntil = Time.time + 0.7f;
+            SoundKit.Play("meow", 0.8f, 0.7f);
+            Say?.Invoke("앗, 배 함정! 뒷발로 팡팡 찼어요");
+            _lastSayAt = Time.time;
+            _lastSaidFeel = PetFeel.Dislike;
+            Spawn(Vein(), HeadTop(), new Vector3(0, 0.2f, 0) * CellSize, 0.7f, CellSize * 0.22f);
+        }
+}
 }
