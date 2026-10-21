@@ -40,6 +40,7 @@ namespace CatHealingHouse.View
         public StraySystem Strays;
 
         public Cat Cat => _cat;
+        public CatLook Look { get; private set; }
         private string _shownCostume;
         private Material _material;
         public Vector3 BodyCenter => _rig.transform.position + new Vector3(0, (float)_layout.Size * 0.4f, 0);
@@ -57,6 +58,7 @@ namespace CatHealingHouse.View
             _rig = rigGo.AddComponent<CatRig>();
             _rig.Build(look, material, _phase);
             _material = material;
+            Look = look;
 
             var labelGo = new GameObject("Label");
             labelGo.transform.SetParent(transform, false);

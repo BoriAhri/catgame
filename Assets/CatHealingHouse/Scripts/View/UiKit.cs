@@ -173,6 +173,15 @@ namespace CatHealingHouse.View
                     c.Fill(Intersect(Circle(0.5f, 0.5f, 0.32f), Capsule(0.24f, 0.58f, 0.66f, 0.24f, 0.025f)), Col("#9C84CC"));
                     c.Fill(Capsule(0.76f, 0.28f, 0.9f, 0.14f, 0.02f), Line);
                     break;
+                case "note":
+                case "note_off":
+                    c.Fill(Circle(0.36f, 0.3f, 0.12f), Col("#8EC5E8"), Line, w);
+                    c.Fill(Circle(0.7f, 0.38f, 0.12f), Col("#8EC5E8"), Line, w);
+                    c.Fill(RoundBox(0.46f, 0.55f, 0.03f, 0.26f, 0.01f), Line);
+                    c.Fill(RoundBox(0.8f, 0.62f, 0.03f, 0.26f, 0.01f), Line);
+                    c.Fill(Polygon(new[] { new Vector2(0.43f, 0.82f), new Vector2(0.83f, 0.9f), new Vector2(0.83f, 0.78f), new Vector2(0.43f, 0.7f) }, 0.01f), Line);
+                    if (id == "note_off") c.Fill(Capsule(0.18f, 0.16f, 0.84f, 0.86f, 0.045f), Col("#D2694A"), Line, w * 0.6f);
+                    break;
                 case "sparkle":
                     c.Fill(Star(0.5f, 0.5f, 0.34f, 4, 0.35f, 0.02f), Col("#FFD36B"), Line, w * 0.8f);
                     c.Fill(Star(0.78f, 0.78f, 0.12f, 4, 0.4f, 0.01f), Col("#FFE9A6"));
