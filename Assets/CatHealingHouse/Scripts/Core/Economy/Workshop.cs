@@ -105,6 +105,9 @@ namespace CatHealingHouse.Economy
             return true;
         }
 
+        /// <summary>불러오기용.</summary>
+        public void SetCloset(string costumeId, int count) { if (costumeId != null) _closet[costumeId] = Math.Max(0, count); }
+
         public void TakeOff(Cat cat)
         {
             if (cat?.Costume == null) return;

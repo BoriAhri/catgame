@@ -86,6 +86,9 @@ namespace CatHealingHouse.Economy
 
         public IEnumerable<KeyValuePair<string, int>> Storage => _storage;
 
+        /// <summary>불러오기용: 보관함 개수를 그대로 정한다.</summary>
+        public void SetStock(string defId, int count) { if (count > 0) _storage[defId] = count; else _storage.Remove(defId); }
+
         public void AddToStorage(FurnitureDef def, int count = 1)
         {
             _storage[def.Id] = Stock(def) + count;

@@ -4,6 +4,7 @@ using CatHealingHouse.Cats;
 using CatHealingHouse.Economy;
 using CatHealingHouse.Furniture;
 using CatHealingHouse.Hex;
+using CatHealingHouse.Save;
 using CatHealingHouse.Stray;
 using CatHealingHouse.View.Art;
 using CatHealingHouse.World;
@@ -127,6 +128,125 @@ namespace CatHealingHouse.View
 
         // ───────────────────────── 시작 ─────────────────────────
 
+        // ───────────────────────── 저장·불러오기 ─────────────────────────
+
+        private SaveData _loaded;
+        private AwaySummary _away;
+        private bool _saveSoon, _resetting;
+        private float _lastSave;
+        private System.DateTime? _pausedAt;
+        private float _resetArmedUntil;
+
+        private static string SavePath => System.IO.Path.Combine(Application.persistentDataPath, "save.json");
+
+        private GameState State() => new GameState
+        {
+            World = World, Sim = Sim, Economy = Economy, Strays = Strays, Shop = Shop, Workshop = Workshop, Skills = Skills, Clock = Clock,
+        };
+
+        private static SaveData LoadFile()
+        {
+            try
+            {
+                if (!System.IO.File.Exists(SavePath)) return null;
+                var d = JsonUtility.FromJson<SaveData>(System.IO.File.ReadAllText(SavePath));
+                return d != null && d.Version >= 1 ? d : null;
+            }
+            catch (System.Exception e) { Debug.LogWarning($"[HouseGame] 저장 파일을 읽지 못해 새로 시작합니다: {e.Message}"); return null; }
+        }
+
+        private void SaveNow()
+        {
+            if (_resetting || Sim == null) return;
+            _saveSoon = false;
+            _lastSave = Time.realtimeSinceStartup;
+            try
+            {
+                string json = JsonUtility.ToJson(SaveGame.Capture(State(), System.DateTime.UtcNow));
+                string tmp = SavePath + ".tmp";
+                System.IO.File.WriteAllText(tmp, json);
+                if (System.IO.File.Exists(SavePath)) System.IO.File.Delete(SavePath);
+                System.IO.File.Move(tmp, SavePath);
+            }
+            catch (System.Exception e) { Debug.LogWarning($"[HouseGame] 저장 실패: {e.Message}"); }
+        }
+
+        /// <summary>앱이 백그라운드로 가면 저장, 돌아오면 그동안 지난 시간을 계산한다.</summary>
+        private void OnApplicationPause(bool paused)
+        {
+            if (Sim == null) return;
+            if (paused) { _pausedAt = System.DateTime.UtcNow; SaveNow(); return; }
+            if (_pausedAt.HasValue)
+            {
+                double secs = OfflineProgress.ElapsedSeconds(_pausedAt.Value.Ticks, System.DateTime.UtcNow);
+                _pausedAt = null;
+                if (secs >= 60)
+                {
+                    _away = OfflineProgress.Run(State(), secs);
+                    _viewsDirty = true;
+                    SaveNow();
+                }
+            }
+        }
+
+        private void OnApplicationQuit() => SaveNow();
+
+        /// <summary>처음부터 다시: 저장을 지우고 장면을 새로 연다.</summary>
+        private void ResetGame()
+        {
+            _resetting = true;
+            try { if (System.IO.File.Exists(SavePath)) System.IO.File.Delete(SavePath); } catch { }
+            UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+        }
+
+        private static readonly Dictionary<string, CatLook> StartLooks = new Dictionary<string, CatLook>
+        {
+            { "cheese", new CatLook(SdfCanvas.Col("#F7BE7A"), CatPattern.Tabby, SdfCanvas.Col("#E3914A"), "cheese") },
+            { "kkamang", new CatLook(SdfCanvas.Col("#4A444F"), CatPattern.Solid, Color.black, "kkamang") },
+            { "godeungeo", new CatLook(SdfCanvas.Col("#B3ACA1"), CatPattern.Tabby, SdfCanvas.Col("#6F675F"), "godeungeo") },
+            { "samsaek", new CatLook(SdfCanvas.Col("#FBF3E6"), CatPattern.Calico, SdfCanvas.Col("#F0A766"), "samsaek") },
+        };
+
+        /// <summary>불러온 고양이의 겉모습: 데려온 길냥이는 품종, 처음 고양이는 저장된 열쇠.</summary>
+        private CatLook LookFor(Cat cat)
+        {
+            if (cat.StrayId > 0)
+                foreach (var p in Strays.Profiles) if (p.Id == cat.StrayId) return LookOf(p.Breed);
+            return cat.LookKey != null && StartLooks.TryGetValue(cat.LookKey, out var look) ? look : StartLooks["cheese"];
+        }
+
+        private static string Duration(double secs)
+        {
+            int m = (int)(secs / 60), h = m / 60;
+            m %= 60;
+            return h > 0 ? (m > 0 ? $"{h}시간 {m}분" : $"{h}시간") : $"{m}분";
+        }
+
+        private void DrawAwayPopup(float h)
+        {
+            var s = _away;
+            GUI.DrawTexture(new Rect(0, 0, UiWidth, h), Solid(new Color(0.12f, 0.09f, 0.07f, 0.55f)));
+            var lines = new List<string>();
+            if (s.IsEmpty) lines.Add("고양이들이 조용히 쉬었어요.");
+            if (s.TrayItems > 0) lines.Add($"트레이에 결과물 {s.TrayItems}개 (약 {s.TrayValue:N0}원어치)");
+            if (s.Furballs + s.Whiskers > 0) lines.Add($"바닥에 털뭉치 {s.Furballs}개{(s.Whiskers > 0 ? $", 수염 {s.Whiskers}개" : "")}");
+            if (s.LitterUses > 0) lines.Add($"화장실을 {s.LitterUses}번 썼어요. 청소해 주세요!");
+            if (s.Meals > 0) lines.Add($"마당 밥그릇에서 {s.Meals}끼를 먹었어요");
+            foreach (var v in s.Visits)
+                lines.Add($"  · {v.Name} 호감 {v.AffectionBefore:0} → {v.AffectionAfter:0}{(v.FirstTime ? "  <color=#C0603F><b>새 친구!</b></color>" : "")}");
+            if (s.Gifts > 0) lines.Add($"마당에 선물 {s.Gifts}개가 놓여 있어요");
+            if (s.Capped) lines.Add("<color=#8E6A4B>(최대 12시간까지만 계산해요)</color>");
+
+            float ph = 150 + lines.Count * 30;
+            var area = new Rect(24, (h - ph) * 0.5f, UiWidth - 48, ph);
+            GUI.DrawTexture(new Rect(area.x + 8, area.y + 8, area.width - 16, area.height - 16), Solid(SdfCanvas.Col("#FBF4E6")));
+            GUI.DrawTexture(area, _slotTex, ScaleMode.StretchToFill);
+            GUI.Label(new Rect(area.x + 20, area.y + 16, area.width - 40, 32), $"<b>자리를 비운 사이 ({Duration(s.RealSeconds)})</b>", _menuTitle);
+            for (int i = 0; i < lines.Count; i++)
+                GUI.Label(new Rect(area.x + 24, area.y + 58 + i * 30, area.width - 48, 28), lines[i], _shopSmall);
+            if (GUI.Button(new Rect(area.x + area.width * 0.5f - 70, area.yMax - 64, 140, 46), "확인", _btn)) _away = null;
+        }
+
         private void Awake()
         {
             // 에디터 창이 포커스를 잃어도 고양이들은 계속 살아있게 (모바일에서는 영향 없음)
@@ -151,7 +271,9 @@ namespace CatHealingHouse.View
             _material = new Material(Shader.Find("Sprites/Default")) { name = "CuteArt (runtime)" };
             _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            SeedSampleLayout();
+            // 저장이 있으면 이어서, 없으면 샘플 배치로 새로 시작
+            _loaded = LoadFile();
+            if (_loaded == null) SeedSampleLayout();
 
             Sim = new CatSimulation(World, DistanceMaps, new CatTuning(), seed: System.Environment.TickCount);
             // 하루 시계: 현실 24분 = 게임 하루, 아침 7시에 시작. 시뮬레이션 시간으로 돌아서 배속도 따라간다.
@@ -164,9 +286,12 @@ namespace CatHealingHouse.View
 
             Strays = new StraySystem(Sim, Economy, seed: System.Environment.TickCount + 2);
             // 시작 돈·사료 + 보관함에 여분 가구 두 개 (배치 모드를 바로 써 볼 수 있게)
-            Shop = new Shop(World, Economy);
-            Shop.AddToStorage(FurnitureCatalog.BoxSmall);
-            Shop.AddToStorage(FurnitureCatalog.Cushion);
+            Shop = new Shop(World, Economy, grantStart: _loaded == null);
+            if (_loaded == null)
+            {
+                Shop.AddToStorage(FurnitureCatalog.BoxSmall);
+                Shop.AddToStorage(FurnitureCatalog.Cushion);
+            }
             Workshop = new Workshop(Economy.Wallet, Shop);
             Workshop.Changed += () => _viewsDirty = true;
             Skills = new ButlerSkills(Economy, Strays);
@@ -177,6 +302,19 @@ namespace CatHealingHouse.View
             Strays.BecameReady += (c, p) => Say($"{p.Name}가 문 앞에서 기다려요. 탭해서 들여보내 주세요!");
             Strays.Adopted += (c, p) => { Say($"{p.Name}가 우리 집 고양이가 됐어요! ({c.Personality.DisplayName})"); FitCamera(); };
             Strays.Left += p => { if (CurrentBoard == BoardId.Outdoor && p.Affection >= 30) Say($"{p.Name}가 돌아갔어요. 또 올 거예요."); };
+            // 중요한 일이 생기면 곧 저장 (영입, 구매·배치, 제작, 스킬)
+            Strays.Adopted += (c, p) => _saveSoon = true;
+            Shop.Changed += () => _saveSoon = true;
+            Workshop.Changed += () => _saveSoon = true;
+            Skills.Changed += () => _saveSoon = true;
+            List<Cat> restored = null;
+            if (_loaded != null)
+            {
+                restored = SaveGame.Restore(State(), _loaded);
+                // 자리를 비운 사이 (기기 시간을 되돌렸으면 0)
+                var away = OfflineProgress.Run(State(), OfflineProgress.ElapsedSeconds(_loaded.SavedAtUtcTicks, System.DateTime.UtcNow));
+                if (away.Seconds >= 60) _away = away;
+            }
 
             foreach (BoardId id in new[] { BoardId.Indoor, BoardId.Outdoor })
             {
@@ -189,7 +327,8 @@ namespace CatHealingHouse.View
                 _views[id] = view;
             }
 
-            SpawnCats();
+            if (restored == null) SpawnCats();
+            else foreach (var c in restored) AddCatView(c, LookFor(c));
 
             var envGo = new GameObject("Environment");
             envGo.transform.SetParent(transform, false);
@@ -399,6 +538,7 @@ namespace CatHealingHouse.View
                     cell = World.Indoor.Tiles.Values.Where(t => t.Kind == TileKind.Floor && World.IsTransit(new Cell(BoardId.Indoor, t.Coord)))
                         .Select(t => new Cell(BoardId.Indoor, t.Coord)).First();
                 var cat = Sim.AddCat(name, cell, personality);
+                cat.LookKey = look.SkinId;
                 // 시작 욕구를 섞어서 고양이들이 동시에 같은 행동을 하지 않게
                 foreach (var n in CatNeeds.All) cat.Needs.Set(n, 50 + rng.NextDouble() * 50);
 
@@ -469,6 +609,9 @@ namespace CatHealingHouse.View
                 FitCamera();
             }
 
+            // 틈틈이 저장 (20초마다, 중요한 일 직후)
+            if (_saveSoon || Time.realtimeSinceStartup - _lastSave > 20f) SaveNow();
+
             // 시뮬레이션은 보고 있는 보드와 상관없이 항상 진행
             Sim.Advance(Time.deltaTime * _speed);
             int food = FoodSignature();
@@ -506,7 +649,7 @@ namespace CatHealingHouse.View
         {
             float yFromTop = Screen.height - screenPos.y;
             if (_menuCat != null && _menuRectGui.Contains(new Vector2(screenPos.x / UiScale, yFromTop / UiScale))) return true;
-            if (_shopOpen || _workshopOpen || _skillsOpen) return true; // 창이 열려 있으면 보드는 터치 안 받음
+            if (_shopOpen || _workshopOpen || _skillsOpen || _away != null) return true; // 창이 열려 있으면 보드는 터치 안 받음
             var gui = new Vector2(screenPos.x / UiScale, yFromTop / UiScale);
             if (_shopButtonGui.Contains(gui) || _workshopButtonGui.Contains(gui) || _skillButtonGui.Contains(gui)) return true;
             return yFromTop < TopUiH * UiScale || screenPos.y < BottomBarH * UiScale;
@@ -957,6 +1100,7 @@ namespace CatHealingHouse.View
 
             // ── 길냥이 메뉴 (맨 위에)
             DrawStrayMenu();
+            if (_away != null) DrawAwayPopup(h);
         }
 
         private void ModeButton(Rect r, string label, Mode m)
@@ -1249,6 +1393,13 @@ namespace CatHealingHouse.View
                 }
             }
             GUI.EndScrollView();
+            var rr = new Rect(body.x + 4, body.yMax - 46, 200, 40);
+            bool armed = Time.realtimeSinceStartup < _resetArmedUntil;
+            if (GUI.Button(rr, armed ? "한 번 더 누르면 삭제" : "처음부터 다시 하기", armed ? _btnOn : _btnOff))
+            {
+                if (armed) ResetGame();
+                else { _resetArmedUntil = Time.realtimeSinceStartup + 3f; Say("저장이 지워지고 처음부터 시작해요. 정말이면 한 번 더 누르세요."); }
+            }
         }
 
         private void DrawShopFurniture(Rect body)

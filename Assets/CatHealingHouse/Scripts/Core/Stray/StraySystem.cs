@@ -238,6 +238,18 @@ namespace CatHealingHouse.Stray
             f != null && f.Board == BoardId.Outdoor && f.Def.Satisfies == NeedType.Hunger;
 
         /// <summary>야외 밥그릇을 탭해서 채운다. 이미 가득이면 false.</summary>
+        /// <summary>저장한 밥그릇 끼니를 되살린다.</summary>
+        public void RestoreBowl(int bowlId, int food) { if (food > 0) _bowlFood[bowlId] = Math.Min(food, Tuning.BowlPortions); }
+
+        /// <summary>자리를 비운 사이 계산용: 한 끼 먹는다. 남은 게 없으면 false.</summary>
+        public bool EatQuiet(int bowlId)
+        {
+            int n = FoodIn(bowlId);
+            if (n <= 0) return false;
+            _bowlFood[bowlId] = n - 1;
+            return true;
+        }
+
         public bool FillBowl(int bowlId)
         {
             var f = Sim.World.GetFurniture(bowlId);

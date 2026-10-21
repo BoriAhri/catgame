@@ -20,6 +20,9 @@ namespace CatHealingHouse.World
 
         public void Advance(double seconds) { Elapsed += seconds; }
 
+        /// <summary>불러오기용.</summary>
+        public void SetElapsed(double seconds) { Elapsed = Math.Max(0, seconds); }
+
         /// <summary>0~24 시.</summary>
         public double Hour
         {

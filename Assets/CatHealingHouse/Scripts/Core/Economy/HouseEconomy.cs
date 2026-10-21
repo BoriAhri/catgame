@@ -315,6 +315,66 @@ namespace CatHealingHouse.Economy
             return false;
         }
 
+        // ───────────────────────── 저장·오프라인용 ─────────────────────────
+
+        public void GetLitter(int furnitureId, out int pee, out int poop)
+        {
+            if (_litter.TryGetValue(furnitureId, out var st)) { pee = st.Pee; poop = st.Poop; }
+            else pee = poop = 0;
+        }
+
+        public void RestoreLitter(int furnitureId, int pee, int poop)
+        {
+            var st = LitterOf(furnitureId);
+            st.Pee = Math.Max(0, pee);
+            st.Poop = Math.Max(0, poop);
+        }
+
+        public void RestoreTraySlot(int furnitureId, ItemKind kind, string label, int count)
+        {
+            if (count <= 0) return;
+            var slot = _tray.Find(s => s.FurnitureId == furnitureId && s.Kind == kind);
+            if (slot == null) { slot = new TraySlot(furnitureId, kind, label); _tray.Add(slot); }
+            slot.Count = Math.Max(slot.Count, count);
+        }
+
+        /// <summary>드롭을 그대로 되살린다 (상한 확인 없이).</summary>
+        public void RestoreDrop(Cell c, ItemKind kind)
+        {
+            _drops.Add(new DroppedItem { Id = _nextDropId++, Cell = c, Kind = kind, CreatedAt = Now });
+        }
+
+        /// <summary>
+        /// 자리를 비운 사이 계산용: 가구를 한 번 다 쓴 것처럼 결과만 반영한다 (하트·화면 연출 없음).
+        /// 화장실이면 오염 +1, 나머지는 트레이 +1 (칸 상한까지). 트레이에 실제로 들어간 개수를 돌려준다.
+        /// </summary>
+        public int GrantUseQuiet(FurnitureInstance f)
+        {
+            if (RewardTable.IsLitterBox(f.Def))
+            {
+                var st = LitterOf(f.Id);
+                if (_rng.NextDouble() < Tuning.PeeChance) st.Pee++; else st.Poop++;
+                return 0;
+            }
+            var kind = RewardTable.TrayItemFor(f.Def);
+            if (kind == ItemKind.None) return 0;
+            var slot = _tray.Find(s => s.FurnitureId == f.Id && s.Kind == kind);
+            if (slot == null) { slot = new TraySlot(f.Id, kind, f.Def.DisplayName); _tray.Add(slot); }
+            int add = Math.Max(0, Math.Min(1, Tuning.TraySlotCap - slot.Count));
+            slot.Count += add;
+            return add;
+        }
+
+        /// <summary>자리를 비운 사이 계산용 바닥 드롭 (보드 상한·빈칸 확인은 그대로).</summary>
+        public bool DropQuiet(Cell c, ItemKind kind)
+        {
+            if (DropCount(c.Board) >= Tuning.MaxDropsPerBoard || !CanDropAt(c)) return false;
+            _drops.Add(new DroppedItem { Id = _nextDropId++, Cell = c, Kind = kind, CreatedAt = Now });
+            return true;
+        }
+
+        public void NotifyChanged() => Changed?.Invoke();
+
         /// <summary>가구가 철거되면 그 가구의 하트·화장실 상태를 정리 (트레이 칸은 남겨서 수확할 수 있게).</summary>
         public void ForgetFurniture(int furnitureId)
         {

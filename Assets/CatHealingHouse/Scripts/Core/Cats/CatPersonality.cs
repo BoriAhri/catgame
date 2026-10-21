@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using CatHealingHouse.Furniture;
 
 namespace CatHealingHouse.Cats
@@ -132,5 +132,12 @@ namespace CatHealingHouse.Cats
         {
             Sleepyhead, TowerKing, Energizer, Foodie, Shy, Curious,
         };
+
+        /// <summary>저장된 성격 ID 로 다시 만든다. 모르면 보통.</summary>
+        public static CatPersonality ById(string id)
+        {
+            foreach (var make in All) { var p = make(); if (p.Id == id) return p; }
+            return CatPersonality.Normal();
+        }
     }
 }

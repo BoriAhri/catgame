@@ -85,5 +85,13 @@ namespace CatHealingHouse.Furniture
             CatTower3, CatTower5, Bed, CatWheel, Bookshelf, BigRug, Bench,
             WallSteps, WallHammock, WallCatwalk, WallBox,
         };
+    
+        /// <summary>ID 로 정의 찾기 (상점 가구 + 공방 가구).</summary>
+        public static FurnitureDef ById(string id)
+        {
+            foreach (var d in All) if (d.Id == id) return d;
+            foreach (var d in Crafted) if (d.Id == id) return d;
+            return null;
+        }
     }
 }

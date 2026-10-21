@@ -95,6 +95,15 @@ namespace CatHealingHouse.Economy
             return SkillResult.Ok;
         }
 
+        /// <summary>불러오기용: 레벨을 그대로 정하고 반영한다.</summary>
+        public void SetLevel(string id, int level)
+        {
+            var d = Get(id);
+            if (d == null) return;
+            _levels[id] = Math.Max(0, Math.Min(d.MaxLevel, level));
+            Apply();
+        }
+
         /// <summary>레벨을 실제 수치에 반영한다 (불러오기 후에도 부른다).</summary>
         public void Apply()
         {

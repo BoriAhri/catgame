@@ -113,6 +113,9 @@ namespace CatHealingHouse.Cats
 
         /// <summary>입고 있는 코스튬 ID (공방에서 제작, 없으면 null).</summary>
         public string Costume;
+
+        /// <summary>겉모습 열쇠 (저장·불러오기 때 같은 그림을 다시 고르려고). 화면 쪽에서 정한다.</summary>
+        public string LookKey;
         public NeedType TargetNeed = NeedType.None;
         public double UseTime;
 
