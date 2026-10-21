@@ -263,6 +263,8 @@ namespace CatHealingHouse.View
                 var camGo = new GameObject("Main Camera") { tag = "MainCamera" };
                 _cam = camGo.AddComponent<Camera>();
             }
+            // 소리를 들으려면 장면에 귀(AudioListener)가 하나 있어야 한다
+            if (FindObjectOfType<AudioListener>() == null) _cam.gameObject.AddComponent<AudioListener>();
             _cam.orthographic = true;
             _cam.clearFlags = CameraClearFlags.SolidColor;
             _cam.transform.position = new Vector3(0, 0, -10);
