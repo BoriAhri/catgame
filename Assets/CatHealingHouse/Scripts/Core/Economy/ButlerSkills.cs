@@ -58,9 +58,9 @@ namespace CatHealingHouse.Economy
             });
             Defs.Add(new SkillDef
             {
-                Id = GentleHands, Name = "능숙한 손길", Desc = "길냥이를 쓰다듬을 때 호감도가 더 올라요",
+                Id = GentleHands, Name = "능숙한 손길", Desc = "쓰다듬기 만족이 빨리 차고, 길냥이 호감도가 더 올라요",
                 Costs = new long[] { 5, 12, 25 },
-                EffectAt = lv => $"쓰다듬기 +{_basePet + lv * PetPerLevel:0}",
+                EffectAt = lv => $"만족 속도 +{lv * 20}%, 길냥이 호감 +{_basePet + lv * PetPerLevel:0}",
             });
             Defs.Add(new SkillDef
             {

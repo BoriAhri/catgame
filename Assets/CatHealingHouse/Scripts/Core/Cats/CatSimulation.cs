@@ -193,6 +193,8 @@ namespace CatHealingHouse.Cats
                 if (cat.HopProgress < 1) return;
                 cat.HopProgress = 1;
             }
+            // 가까이 보기로 쓰다듬는 동안은 제자리 (욕구는 그대로 줄어든다)
+            if (cat.Held) return;
 
             switch (cat.State)
             {

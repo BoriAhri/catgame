@@ -18,6 +18,7 @@ namespace CatHealingHouse.Save
     {
         public string Name; public string LookKey; public int StrayId; public string Personality; public string Costume;
         public double Hunger, Bladder, Energy, Fun, Mood; public int Board; public int Q, R;
+        public double PetFatigue, PetFatigueAgo, PetHeartWait;
     }
     [Serializable] public sealed class StraySave { public int Id; public double Affection; public int Visits, Meals; public bool Discovered, Adopted; }
     [Serializable] public sealed class CountSave { public string Id; public int Count; }
@@ -95,6 +96,8 @@ namespace CatHealingHouse.Save
                     Name = c.Name, LookKey = c.LookKey, StrayId = c.StrayId, Personality = c.Personality?.Id, Costume = c.Costume,
                     Hunger = c.Needs.Hunger, Bladder = c.Needs.Bladder, Energy = c.Needs.Energy, Fun = c.Needs.Fun, Mood = c.Mood,
                     Board = (int)c.Cell.Board, Q = c.Cell.Coord.Q, R = c.Cell.Coord.R,
+                    PetFatigue = c.PetFatigue, PetFatigueAgo = g.Sim.SimTime - c.PetFatigueAt,
+                    PetHeartWait = Math.Max(0, c.PetHeartAt - g.Sim.SimTime),
                 });
             }
             if (g.Strays != null)
@@ -169,6 +172,9 @@ namespace CatHealingHouse.Save
                 cat.Costume = string.IsNullOrEmpty(cs.Costume) ? null : cs.Costume;
                 cat.Needs.Hunger = cs.Hunger; cat.Needs.Bladder = cs.Bladder; cat.Needs.Energy = cs.Energy; cat.Needs.Fun = cs.Fun;
                 cat.Mood = cs.Mood;
+                cat.PetFatigue = cs.PetFatigue;
+                cat.PetFatigueAt = g.Sim.SimTime - cs.PetFatigueAgo;
+                cat.PetHeartAt = cs.PetHeartWait > 0 ? g.Sim.SimTime + cs.PetHeartWait : double.NegativeInfinity;
                 cats.Add(cat);
             }
 

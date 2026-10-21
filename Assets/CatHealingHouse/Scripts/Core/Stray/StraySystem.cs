@@ -442,7 +442,35 @@ namespace CatHealingHouse.Stray
             return p.Tier >= AffectionTier.Friendly;
         }
 
-        public bool AlreadyDone(Cat cat, StrayAction a) => a != StrayAction.Adopt && (cat.VisitFlags & (1 << (int)a)) != 0;
+        private const int PetBonusFlag = 1 << 6;
+
+        /// <summary>가까이 보기에서 만족도를 다 채웠을 때: 방문당 한 번 호감도 보너스. 실제로 오른 양을 돌려준다.</summary>
+        public double PetBonus(Cat cat, double amount)
+        {
+            var p = ProfileOf(cat);
+            if (p == null || (cat.VisitFlags & PetBonusFlag) != 0) return 0;
+            cat.VisitFlags |= PetBonusFlag;
+            double before = p.Affection;
+            p.AddAffection(amount);
+            React(cat, StrayReaction.Love);
+            return p.Affection - before;
+        }
+
+        /// <summary>가까이 보기에서 싫은 곳을 계속 만져서 짜증내며 가 버릴 때 (그날 못 오게 하진 않음). 줄어든 양을 돌려준다.</summary>
+        public double PetAnnoyed(Cat cat, double penalty)
+        {
+            var p = ProfileOf(cat);
+            if (p == null) return 0;
+            double before = p.Affection;
+            cat.Held = false;
+            cat.Activity = 0;
+            p.AddAffection(-penalty);
+            BeginFlee(cat, p, penalty: false);
+            return before - p.Affection;
+        }
+
+        
+public bool AlreadyDone(Cat cat, StrayAction a) => a != StrayAction.Adopt && (cat.VisitFlags & (1 << (int)a)) != 0;
 
         /// <summary>메뉴가 열려 있는 동안 고양이를 제자리에 잡아둔다 (먹기·식빵 타이머도 멈춘다).</summary>
         public void Hold(Cat cat, bool hold) { if (cat != null) cat.Held = hold; }

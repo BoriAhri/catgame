@@ -24,12 +24,17 @@ namespace CatHealingHouse.View.Art
         }
 
         /// <summary>도형을 채운다. outlineWidth 만큼 바깥에 테두리를 두른다.</summary>
+        /// <summary>이 영역(0~1) 밖은 계산하지 않는다 (큰 캔버스에서 작은 부위를 빨리 그리려고).</summary>
+        public Rect Bounds = new Rect(0, 0, 1, 1);
+
         public void Fill(Shape shape, Color fill, Color outline = default, float outlineWidth = 0f)
         {
-            for (int j = 0; j < Size; j++)
+            int j0 = Mathf.Clamp(Mathf.FloorToInt(Bounds.yMin * Size), 0, Size), j1 = Mathf.Clamp(Mathf.CeilToInt(Bounds.yMax * Size), 0, Size);
+            int i0 = Mathf.Clamp(Mathf.FloorToInt(Bounds.xMin * Size), 0, Size), i1 = Mathf.Clamp(Mathf.CeilToInt(Bounds.xMax * Size), 0, Size);
+            for (int j = j0; j < j1; j++)
             {
                 float y = (j + 0.5f) / Size;
-                for (int i = 0; i < Size; i++)
+                for (int i = i0; i < i1; i++)
                 {
                     float x = (i + 0.5f) / Size;
                     float d = shape(x, y);
