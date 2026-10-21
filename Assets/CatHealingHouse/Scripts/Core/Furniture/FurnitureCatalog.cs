@@ -69,6 +69,16 @@ namespace CatHealingHouse.Furniture
         public static readonly FurnitureDef WallBox = new FurnitureDef("wall_box", "벽 숨숨집", 1,
             NeedType.Energy, InteractionType.Enter, wallWidth: 1);
 
+        // ── 공방 장난감 (상점에서 안 팔고 공방에서 털뭉치·수염으로 만든다)
+        public static readonly FurnitureDef FeltBall = new FurnitureDef("felt_ball", "양모펠트 공", 1,
+            NeedType.Fun, InteractionType.InPlace, ZoneMask.Indoor, E(0, 0)).WithPower(1.8);
+
+        public static readonly FurnitureDef MouseToy = new FurnitureDef("mouse_toy", "쥐돌이", 1,
+            NeedType.Fun, InteractionType.InPlace, ZoneMask.Indoor, E(0, 0)).WithPower(2.5);
+
+        /// <summary>공방에서 만드는 가구 (상점 목록에는 보관함에 있을 때만 보인다).</summary>
+        public static readonly IReadOnlyList<FurnitureDef> Crafted = new[] { FeltBall, MouseToy };
+
         public static readonly IReadOnlyList<FurnitureDef> All = new[]
         {
             FoodBowl, LitterBox, Scratcher, Cushion, BoxSmall, BoxDouble, HidingHouse,

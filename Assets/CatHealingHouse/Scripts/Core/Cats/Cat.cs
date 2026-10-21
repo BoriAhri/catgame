@@ -110,6 +110,9 @@ namespace CatHealingHouse.Cats
         // 목표 가구
         public int TargetFurnitureId = -1;
         public int SlotIndex = -1;
+
+        /// <summary>입고 있는 코스튬 ID (공방에서 제작, 없으면 null).</summary>
+        public string Costume;
         public NeedType TargetNeed = NeedType.None;
         public double UseTime;
 

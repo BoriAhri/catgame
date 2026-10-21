@@ -40,6 +40,8 @@ namespace CatHealingHouse.View
         public StraySystem Strays;
 
         public Cat Cat => _cat;
+        private string _shownCostume;
+        private Material _material;
         public Vector3 BodyCenter => _rig.transform.position + new Vector3(0, (float)_layout.Size * 0.4f, 0);
 
         public void Init(Cat cat, CatSimulation sim, HexLayout layout, Material material, Font font, CatLook look)
@@ -54,6 +56,7 @@ namespace CatHealingHouse.View
             rigGo.transform.SetParent(transform, false);
             _rig = rigGo.AddComponent<CatRig>();
             _rig.Build(look, material, _phase);
+            _material = material;
 
             var labelGo = new GameObject("Label");
             labelGo.transform.SetParent(transform, false);
@@ -265,6 +268,11 @@ namespace CatHealingHouse.View
             bool faceLeft = _faceLeft;
             float w = size * 1.25f * scale;
             _rig.transform.localScale = new Vector3((faceLeft ? -1f : 1f) * w * (2f - squash), w * squash, 1);
+            if (_cat.Costume != _shownCostume)
+            {
+                _shownCostume = _cat.Costume;
+                _rig.SetCostume(_shownCostume != null ? CraftArt.Costume(_shownCostume) : null, _shownCostume != null ? CraftArt.PartOf(_shownCostume) : CatPart.Body, _shownCostume != null ? CraftArt.OrderOf(_shownCostume) : 0, _material);
+            }
             _rig.Animate(pose, (float)_cat.HopProgress, time);
 
             // 그리기 순서: 바닥 위치로 정렬, 가구 위에 올라가 있으면 가구보다 앞

@@ -279,7 +279,7 @@ namespace CatHealingHouse.Cats
                         if (cat.UseTime >= cat.LoungeTimer || AnyUrgent(cat)) BeginExit(cat);
                         return;
                     }
-                    cat.Needs.Add(cat.TargetNeed, Tuning.Refill(cat.TargetNeed) * cat.Personality.Refill(cat.TargetNeed) * dt);
+                    cat.Needs.Add(cat.TargetNeed, Tuning.Refill(cat.TargetNeed) * cat.Personality.Refill(cat.TargetNeed) * f.Def.Power * dt);
                     cat.UseTime += dt;
                     double linger = LingerSeconds(cat, f.Def);
                     bool satisfied = cat.Needs.Get(cat.TargetNeed) >= Tuning.SatisfiedLevel && cat.UseTime >= linger;

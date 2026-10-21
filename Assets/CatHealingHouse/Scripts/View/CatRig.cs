@@ -61,6 +61,27 @@ namespace CatHealingHouse.View
             _renderers[CatPart.EyesClosed].enabled = false;
         }
 
+        private SpriteRenderer _costume;
+
+        /// <summary>코스튬을 입힌다 (null 이면 벗김). 그림 피벗이 관절이라 부위에 매달기만 하면 제자리에 맞는다.</summary>
+        public void SetCostume(Sprite sprite, CatPart part, int order, Material material)
+        {
+            if (sprite == null) { if (_costume != null) _costume.enabled = false; return; }
+            if (_costume == null)
+            {
+                var go = new GameObject("Costume");
+                _costume = go.AddComponent<SpriteRenderer>();
+                _costume.sharedMaterial = material;
+            }
+            _costume.transform.SetParent(_bones[part], false);
+            _costume.transform.localPosition = Vector3.zero;
+            _costume.transform.localRotation = Quaternion.identity;
+            _costume.transform.localScale = Vector3.one;
+            _costume.sprite = sprite;
+            _costume.sortingOrder = order;
+            _costume.enabled = true;
+        }
+
         private void Rot(CatPart p, float deg) => _bones[p].localRotation = Quaternion.Euler(0, 0, deg);
         private void Pos(CatPart p, Vector3 offset) => _bones[p].localPosition = _restPos[p] + offset;
         private void Scale(CatPart p, float x, float y) => _bones[p].localScale = new Vector3(x, y, 1);

@@ -45,6 +45,14 @@ namespace CatHealingHouse.View
         public HouseEconomy Economy { get; private set; }
         public StraySystem Strays { get; private set; }
         public Shop Shop { get; private set; }
+        public Workshop Workshop { get; private set; }
+        public ButlerSkills Skills { get; private set; }
+        private bool _workshopOpen, _skillsOpen;
+        private GUIStyle _popRight;
+        private int _workshopTab;
+        private Vector2 _popScroll;
+        private float _popDragged;
+        private Rect _workshopButtonGui, _skillButtonGui;
         public DayClock Clock { get; private set; }
         private EnvironmentView _env;
         private HashSet<HexCoord> _lit = new HashSet<HexCoord>();
@@ -159,6 +167,9 @@ namespace CatHealingHouse.View
             Shop = new Shop(World, Economy);
             Shop.AddToStorage(FurnitureCatalog.BoxSmall);
             Shop.AddToStorage(FurnitureCatalog.Cushion);
+            Workshop = new Workshop(Economy.Wallet, Shop);
+            Workshop.Changed += () => _viewsDirty = true;
+            Skills = new ButlerSkills(Economy, Strays);
             Sim.CatAdded += OnCatAdded;
             Sim.CatRemoved += OnCatRemoved;
             Strays.Arrived += (c, p) => { if (CurrentBoard == BoardId.Indoor) Say($"마당에 누가 왔어요! 살짝 나가 볼까요?"); };
@@ -495,9 +506,9 @@ namespace CatHealingHouse.View
         {
             float yFromTop = Screen.height - screenPos.y;
             if (_menuCat != null && _menuRectGui.Contains(new Vector2(screenPos.x / UiScale, yFromTop / UiScale))) return true;
-            if (_shopOpen) return true; // 상점 창이 열려 있으면 보드는 터치 안 받음
+            if (_shopOpen || _workshopOpen || _skillsOpen) return true; // 창이 열려 있으면 보드는 터치 안 받음
             var gui = new Vector2(screenPos.x / UiScale, yFromTop / UiScale);
-            if (_shopButtonGui.Contains(gui)) return true;
+            if (_shopButtonGui.Contains(gui) || _workshopButtonGui.Contains(gui) || _skillButtonGui.Contains(gui)) return true;
             return yFromTop < TopUiH * UiScale || screenPos.y < BottomBarH * UiScale;
         }
 
@@ -930,16 +941,19 @@ namespace CatHealingHouse.View
             else DrawTray(h);
 
             // ── 상점 버튼 (오른쪽 아래, 트레이 위) ── 구경 모드에서만
-            _shopButtonGui = Rect.zero;
-            if (_mode == Mode.Play && !_shopOpen)
+            _shopButtonGui = _workshopButtonGui = _skillButtonGui = Rect.zero;
+            if (_mode == Mode.Play && !_shopOpen && !_workshopOpen && !_skillsOpen)
             {
-                _shopButtonGui = new Rect(UiWidth - 122, h - BottomBarH - 66, 112, 58);
-                GUI.DrawTexture(_shopButtonGui, _slotTex, ScaleMode.StretchToFill);
-                CuteArt.DrawIcon(new Rect(_shopButtonGui.x + 8, _shopButtonGui.y + 11, 36, 36), ItemKind.Money);
-                GUI.Label(new Rect(_shopButtonGui.x + 44, _shopButtonGui.y, 64, 58), "<b>상점</b>", _shopBtnLabel);
+                _shopButtonGui = FloatButton(new Rect(UiWidth - 122, h - BottomBarH - 66, 112, 58), ItemKind.Money, "상점");
                 if (GUI.Button(_shopButtonGui, GUIContent.none, GUIStyle.none)) { _shopOpen = true; _shopScroll = Vector2.zero; CloseMenu(); }
+                _workshopButtonGui = FloatButton(new Rect(UiWidth - 240, h - BottomBarH - 66, 112, 58), ItemKind.Furball, "공방");
+                if (GUI.Button(_workshopButtonGui, GUIContent.none, GUIStyle.none)) { _workshopOpen = true; _popScroll = Vector2.zero; CloseMenu(); }
+                _skillButtonGui = FloatButton(new Rect(UiWidth - 358, h - BottomBarH - 66, 112, 58), ItemKind.Heart, "스킬");
+                if (GUI.Button(_skillButtonGui, GUIContent.none, GUIStyle.none)) { _skillsOpen = true; _popScroll = Vector2.zero; CloseMenu(); }
             }
             if (_shopOpen) DrawShopPopup(h);
+            if (_workshopOpen) DrawWorkshopPopup(h);
+            if (_skillsOpen) DrawSkillsPopup(h);
 
             // ── 길냥이 메뉴 (맨 위에)
             DrawStrayMenu();
@@ -1077,10 +1091,173 @@ namespace CatHealingHouse.View
             if (e.type == EventType.MouseDown && !area.Contains(e.mousePosition)) { _shopOpen = false; e.Use(); }
         }
 
+        private Rect FloatButton(Rect r, ItemKind icon, string label)
+        {
+            GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
+            CuteArt.DrawIcon(new Rect(r.x + 8, r.y + 11, 36, 36), icon);
+            GUI.Label(new Rect(r.x + 44, r.y, 64, 58), $"<b>{label}</b>", _shopBtnLabel);
+            return r;
+        }
+
+        /// <summary>가운데 팝업 틀: 어두운 뒷배경 + 패널 + 탭 + 닫기. 닫기를 누르거나 바깥을 누르면 false.</summary>
+        private bool PopupFrame(float h, string[] tabs, ref int tab, string right, out Rect body)
+        {
+            GUI.DrawTexture(new Rect(0, 0, UiWidth, h), Solid(new Color(0.12f, 0.09f, 0.07f, 0.55f)));
+            float pw = UiWidth - 28, ph = Mathf.Min(660, h - 160);
+            var area = new Rect(14, (h - ph) * 0.5f, pw, ph);
+            GUI.DrawTexture(new Rect(area.x + 8, area.y + 8, area.width - 16, area.height - 16), Solid(SdfCanvas.Col("#B98A62")));
+            GUI.DrawTexture(area, _panelTex, ScaleMode.StretchToFill);
+            for (int i = 0; i < tabs.Length; i++)
+                if (GUI.Button(new Rect(area.x + 12 + i * 98, area.y + 12, 92, 40), tabs[i], tab == i ? _btnOn : _btn)) { tab = i; _popScroll = Vector2.zero; }
+            if (_popRight == null) _popRight = new GUIStyle(_menuTitleLight) { fontSize = 17, alignment = TextAnchor.MiddleRight, wordWrap = false };
+            GUI.Label(new Rect(area.x + 12 + tabs.Length * 98, area.y + 14, area.width - 74 - tabs.Length * 98, 36), right, _popRight);
+            body = new Rect(area.x + 10, area.y + 62, area.width - 20, area.height - 72);
+            if (GUI.Button(new Rect(area.xMax - 50, area.y + 12, 40, 40), "X", _btn)) return false;
+            var e = Event.current;
+            if (e.type == EventType.MouseDown && !area.Contains(e.mousePosition)) { e.Use(); return false; }
+            return true;
+        }
+
+        /// <summary>폰에서도 손가락으로 끌리는 스크롤 영역 시작 (IMGUI 기본 스크롤은 터치로 안 끌린다).</summary>
+        private void BeginDragScroll(Rect view, float contentH)
+        {
+            var ev = Event.current;
+            if (ev.type == EventType.MouseDown && view.Contains(ev.mousePosition)) _popDragged = 0f;
+            if (ev.type == EventType.MouseDrag && view.Contains(ev.mousePosition))
+            {
+                _popScroll.y = Mathf.Clamp(_popScroll.y - ev.delta.y, 0, Mathf.Max(0, contentH - view.height));
+                _popDragged += Mathf.Abs(ev.delta.y);
+                ev.Use();
+            }
+            _popScroll = GUI.BeginScrollView(view, _popScroll, new Rect(0, 0, view.width - 20, contentH), false, true);
+        }
+
+        private bool Tapped(Rect r) => GUI.Button(r, GUIContent.none, GUIStyle.none) && _popDragged < 12f;
+
+        // ───────────────────────── 공방 ─────────────────────────
+
+        private void DrawWorkshopPopup(float h)
+        {
+            var w = Economy.Wallet;
+            string right = $"<b>털뭉치 {w.Furballs}  수염 {w.Whiskers}</b>";
+            if (!PopupFrame(h, new[] { "장난감", "코스튬", "옷장" }, ref _workshopTab, right, out var body)) { _workshopOpen = false; return; }
+            if (_workshopTab == 2) { DrawCloset(body); return; }
+
+            var kind = _workshopTab == 0 ? RecipeKind.Toy : RecipeKind.Costume;
+            var recipes = Workshop.Recipes.Where(r => r.Kind == kind).ToList();
+            GUI.Label(new Rect(body.x + 4, body.y, body.width - 8, 22),
+                kind == RecipeKind.Toy ? "만든 장난감은 보관함으로 가요 · 상점 가구 목록에서 꺼내 놓아요" : "만든 코스튬은 옷장으로 가요 · 옷장 탭에서 입혀요", _shopHint);
+            var view = new Rect(body.x, body.y + 26, body.width, body.height - 26);
+            const float rh = 118;
+            BeginDragScroll(view, recipes.Count * (rh + 8));
+            for (int i = 0; i < recipes.Count; i++)
+            {
+                var rc = recipes[i];
+                var r = new Rect(0, i * (rh + 8), view.width - 20, rh);
+                GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
+                var sprite = kind == RecipeKind.Toy ? CuteArt.Furniture(rc.Furniture) : CraftArt.CostumeIcon(rc.CostumeId);
+                CuteArt.DrawSprite(new Rect(r.x + 12, r.y + 14, 84, 84), sprite);
+                GUI.Label(new Rect(r.x + 108, r.y + 8, r.width - 120, 26), $"<b>{rc.Name}</b>", _menuTitle);
+                GUI.Label(new Rect(r.x + 108, r.y + 34, r.width - 120, 22), rc.Desc, _shopSmall);
+                string fur = w.Furballs >= rc.Furballs ? $"털뭉치 {rc.Furballs}" : $"<color=#B0655A>털뭉치 {rc.Furballs}</color>";
+                string whi = rc.Whiskers == 0 ? "" : w.Whiskers >= rc.Whiskers ? $" · 수염 {rc.Whiskers}" : $" · <color=#B0655A>수염 {rc.Whiskers}</color>";
+                int have = kind == RecipeKind.Toy ? Shop.Stock(rc.Furniture) : Workshop.Closet(rc.CostumeId);
+                GUI.Label(new Rect(r.x + 108, r.y + 58, r.width - 120, 22), fur + whi + $"   <color=#4E8A55>({(kind == RecipeKind.Toy ? "보관함" : "옷장")} {have}개)</color>", _shopSmall);
+                bool can = Workshop.Check(rc) == CraftResult.Ok;
+                var br = new Rect(r.xMax - 132, r.y + 70, 120, 40);
+                GUI.Label(br, can ? "만들기" : "재료 부족", can ? _btn : _btnOff);
+                if (Tapped(br))
+                {
+                    var res = Workshop.Craft(rc);
+                    if (res == CraftResult.Ok) Say(kind == RecipeKind.Toy ? $"{rc.Name} 완성! 보관함에 넣었어요." : $"{rc.Name} 완성! 옷장 탭에서 입혀 보세요.");
+                    else Say(res == CraftResult.NotEnoughWhiskers ? "수염이 모자라요. 고양이가 가끔 떨어뜨려요." : "털뭉치가 모자라요. 바닥에 떨어진 털뭉치를 주워 보세요.");
+                }
+            }
+            GUI.EndScrollView();
+        }
+
+        private void DrawCloset(Rect body)
+        {
+            var cats = Sim.Cats.Where(c => c.Affiliation == Affiliation.Resident).ToList();
+            GUI.Label(new Rect(body.x + 4, body.y, body.width - 8, 22), "고양이마다 코스튬을 하나씩 입힐 수 있어요 · 갈아입히면 원래 옷은 옷장으로", _shopHint);
+            var view = new Rect(body.x, body.y + 26, body.width, body.height - 26);
+            const float rh = 104;
+            BeginDragScroll(view, cats.Count * (rh + 8));
+            for (int i = 0; i < cats.Count; i++)
+            {
+                var cat = cats[i];
+                var r = new Rect(0, i * (rh + 8), view.width - 20, rh);
+                GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
+                GUI.Label(new Rect(r.x + 14, r.y + 8, 200, 26), $"<b>{cat.Name}</b>", _menuTitle);
+                GUI.Label(new Rect(r.x + 14, r.y + 34, 200, 22), cat.Costume != null ? $"입은 옷: {Costumes.NameOf(cat.Costume)}" : "입은 옷 없음", _shopSmall);
+                float bx = r.x + 12;
+                foreach (var id in Costumes.All)
+                {
+                    var b = new Rect(bx, r.y + 58, 74, 40);
+                    bool wearing = cat.Costume == id;
+                    int n = Workshop.Closet(id);
+                    GUI.Label(b, "", wearing ? _btnOn : n > 0 ? _btn : _btnOff);
+                    CuteArt.DrawSprite(new Rect(b.x + 4, b.y + 4, 32, 32), CraftArt.CostumeIcon(id));
+                    GUI.Label(new Rect(b.x + 36, b.y, 36, 40), wearing ? "입음" : $"x{n}", _shopSmall);
+                    if (Tapped(b) && !wearing)
+                    {
+                        if (Workshop.Wear(cat, id)) Say($"{cat.Name}에게 {Costumes.NameOf(id)}을(를) 입혔어요!");
+                        else Say($"옷장에 {Costumes.NameOf(id)}이(가) 없어요. 공방에서 만들어 보세요.");
+                    }
+                    bx += 80;
+                }
+                var off = new Rect(r.xMax - 104, r.y + 58, 92, 40);
+                GUI.Label(off, "벗기기", cat.Costume != null ? _btn : _btnOff);
+                if (Tapped(off) && cat.Costume != null) { Workshop.TakeOff(cat); Say($"{cat.Name}의 옷을 벗겼어요."); }
+            }
+            GUI.EndScrollView();
+        }
+
+        // ───────────────────────── 집사 스킬 ─────────────────────────
+
+        private int _skillTabDummy;
+
+        private void DrawSkillsPopup(float h)
+        {
+            if (!PopupFrame(h, new[] { "집사 스킬" }, ref _skillTabDummy, $"<b>젤리 하트 {Economy.Wallet.Hearts}</b>", out var body)) { _skillsOpen = false; return; }
+            GUI.Label(new Rect(body.x + 4, body.y, body.width - 8, 22), "가구 위 하트를 모아 스킬을 올려요", _shopHint);
+            var view = new Rect(body.x, body.y + 26, body.width, body.height - 26);
+            const float rh = 128;
+            BeginDragScroll(view, Skills.Defs.Count * (rh + 8));
+            for (int i = 0; i < Skills.Defs.Count; i++)
+            {
+                var d = Skills.Defs[i];
+                int lv = Skills.Level(d.Id);
+                long cost = Skills.NextCost(d.Id);
+                var r = new Rect(0, i * (rh + 8), view.width - 20, rh);
+                GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
+                CuteArt.DrawIcon(new Rect(r.x + 14, r.y + 18, 60, 60), ItemKind.Heart);
+                GUI.Label(new Rect(r.x + 86, r.y + 8, r.width - 100, 26), $"<b>{d.Name}</b>  Lv {lv}/{d.MaxLevel}", _menuTitle);
+                GUI.Label(new Rect(r.x + 86, r.y + 34, r.width - 100, 22), d.Desc, _shopSmall);
+                string eff = cost < 0 ? $"지금: {d.EffectAt(lv)} (최대)" : $"지금: {d.EffectAt(lv)} → 다음: {d.EffectAt(lv + 1)}";
+                GUI.Label(new Rect(r.x + 86, r.y + 58, r.width - 100, 22), eff, _shopSmall);
+                var br = new Rect(r.xMax - 172, r.y + 82, 160, 38);
+                string label = d.Locked ? "준비 중" : cost < 0 ? "최대 레벨" : $"하트 {cost}개로 올리기";
+                bool can = !d.Locked && cost >= 0 && Economy.Wallet.Hearts >= cost;
+                GUI.Label(br, label, can ? _btn : _btnOff);
+                if (Tapped(br))
+                {
+                    var res = Skills.LevelUp(d.Id);
+                    if (res == SkillResult.Ok) Say($"{d.Name} Lv {Skills.Level(d.Id)}! {d.EffectAt(Skills.Level(d.Id))}");
+                    else if (res == SkillResult.NotEnoughHearts) Say($"젤리 하트가 {cost - Economy.Wallet.Hearts}개 모자라요.");
+                    else if (res == SkillResult.Locked) Say("특제 간식이 생기면 열려요.");
+                }
+            }
+            GUI.EndScrollView();
+        }
+
         private void DrawShopFurniture(Rect body)
         {
             // 지금 보는 보드에 놓을 수 있는 가구만 (마당 가구는 마당에서)
-            var defs = FurnitureCatalog.All.Where(d => Shop.ForSale(d) && d.AllowedOn(CurrentBoard)).OrderBy(d => Shop.PriceOf(d)).ToList();
+            // 상점 가구 + 공방에서 만들어 보관함에 있는 장난감
+            var defs = FurnitureCatalog.All.Concat(FurnitureCatalog.Crafted)
+                .Where(d => (Shop.ForSale(d) || Shop.Stock(d) > 0) && d.AllowedOn(CurrentBoard))
+                .OrderBy(d => Shop.ForSale(d) ? Shop.PriceOf(d) : -1).ToList();
             GUI.Label(new Rect(body.x + 4, body.y, body.width - 8, 22),
                 CurrentBoard == BoardId.Indoor ? "실내에 놓을 가구 · 누르면 놓을 칸을 골라요" : "마당에 놓을 가구 · 누르면 놓을 칸을 골라요", _shopHint);
             var view = new Rect(body.x, body.y + 26, body.width, body.height - 26);

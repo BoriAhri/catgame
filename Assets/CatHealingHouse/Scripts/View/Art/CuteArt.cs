@@ -151,6 +151,7 @@ namespace CatHealingHouse.View.Art
         {
             if (def == null) return null;
             if (def.WallMounted) return WallArt.SpriteOf(def.Id);
+            if (CraftArt.IsToy(def.Id)) return CraftArt.Toy(def.Id);
             var lib = ArtLibrary.Active != null ? ArtLibrary.Active.FurnitureSprite(def.Id, variant) : null;
             if (lib != null) return lib;
             return Cached($"furn_{def.Id}_{variant}", () => DrawFurniture(def, variant));

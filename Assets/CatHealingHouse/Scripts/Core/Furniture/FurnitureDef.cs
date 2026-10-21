@@ -58,6 +58,12 @@ namespace CatHealingHouse.Furniture
             Footprint = footprint;
         }
 
+        /// <summary>욕구가 차는 속도 배율 (공방 장난감은 1보다 크다).</summary>
+        public double Power { get; private set; } = 1;
+
+        /// <summary>정의를 만들 때 회복 배율을 정한다.</summary>
+        public FurnitureDef WithPower(double power) { Power = power; return this; }
+
         /// <summary>벽에 거는 가구면 차지하는 벽 자리 수 (1 이상). 바닥 가구는 0.</summary>
         public readonly int WallWidth;
         public bool WallMounted => WallWidth > 0;
