@@ -23,7 +23,7 @@ namespace CatHealingHouse.View
         private TextMesh _mark;
         private float _bornAt;
 
-        // ── 혼잣말 말풍선 ──
+        // ── 말풍선 (쓰다듬기·확대 반응 때만) ──
         private const int MaxSpeaking = 2; // 한꺼번에 말하는 고양이 수
         private static int _speaking;
         private bool _speakingCounted;
@@ -31,8 +31,7 @@ namespace CatHealingHouse.View
         private SpriteRenderer _speechBox, _speechTail;
         private TextMesh _speechText;
         private MeshRenderer _speechTextR, _labelR;
-        private float _speechAt = -99f, _speechDur, _nextThought;
-        private System.Random _thoughtRng;
+        private float _speechAt = -99f, _speechDur;
 
 
         // ── 자유롭게 보이는 움직임 (판단은 칸, 화면만 부드럽게) ──
@@ -152,8 +151,6 @@ namespace CatHealingHouse.View
 
         private void BuildSpeech(Font font, Material material)
         {
-            _thoughtRng = new System.Random(_cat.Id * 31 + 5);
-            _nextThought = Time.time + 3f + (float)_thoughtRng.NextDouble() * 9f;
             var go = new GameObject("Speech");
             go.transform.SetParent(transform, false);
             _speech = go.transform;
@@ -216,12 +213,6 @@ namespace CatHealingHouse.View
             if (age >= _speechDur || reactionUp)
             {
                 if (_speakingCounted || _speech.gameObject.activeSelf) StopSpeech();
-                if (Time.time >= _nextThought)
-                {
-                    _nextThought = Time.time + 12f + (float)_thoughtRng.NextDouble() * 18f;
-                    if (_speaking < MaxSpeaking && !reactionUp && !_cat.IsHopping)
-                        Say(CatThoughts.Pick(_cat, f, _thoughtRng));
-                }
                 return;
             }
             if (!_speech.gameObject.activeSelf) _speech.gameObject.SetActive(true);
