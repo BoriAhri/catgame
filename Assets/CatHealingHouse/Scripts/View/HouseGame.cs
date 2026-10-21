@@ -101,6 +101,13 @@ namespace CatHealingHouse.View
         private Rect _menuRectGui;      // GUI 좌표 (가상 540 폭)
         private const float MenuW = 300f, MenuH = 196f;
         private float _lastZoomPresence;
+        private float _lastZoomNotice;
+        private readonly System.Random _uiRng = new System.Random();
+        // 첫 만남 연출 (길냥이가 가족이 됐을 때)
+        private Cat _newFamily;
+        private float _newFamilyAt;
+        private GUIStyle _center;
+
         private int ResidentCount => Sim == null ? 0 : Sim.Cats.Count(c => c.Affiliation == Affiliation.Resident);
 
         private string _message = "고양이들을 구경해 보세요. 하트와 털뭉치를 탭하면 주워요.";
@@ -246,6 +253,106 @@ namespace CatHealingHouse.View
             if (GUI.Button(new Rect(area.x + area.width * 0.5f - 70, area.yMax - 64, 140, 46), "확인", _btn)) _away = null;
         }
 
+        private CatView ViewOf(Cat cat) => _catViews.FirstOrDefault(v => v != null && v.Cat == cat);
+
+        /// <summary>GUI 배율 행렬이 걸려 있어도 정확하게: p 를 중심으로 돌리고 키운다.</summary>
+        private static void AroundAt(Matrix4x4 keep, float deg, float scale, Vector2 p)
+        {
+            GUI.matrix = keep * Matrix4x4.TRS(p, Quaternion.Euler(0, 0, deg), new Vector3(scale, scale, 1)) * Matrix4x4.Translate(-(Vector3)p);
+        }
+
+        
+private static float EaseOutBack(float p)
+        {
+            const float c1 = 1.70158f, c3 = c1 + 1f;
+            p = Mathf.Clamp01(p);
+            return 1f + c3 * Mathf.Pow(p - 1f, 3f) + c1 * Mathf.Pow(p - 1f, 2f);
+        }
+
+        private static readonly Color[] Confetti =
+        {
+            new Color(0.95f, 0.55f, 0.45f), new Color(0.98f, 0.80f, 0.40f), new Color(0.55f, 0.78f, 0.45f),
+            new Color(0.50f, 0.70f, 0.90f), new Color(0.90f, 0.60f, 0.80f), new Color(1f, 0.95f, 0.85f),
+        };
+
+        /// <summary>첫 만남: 길냥이가 우리 집 고양이가 된 순간 (빛줄기·꽃가루·카드).</summary>
+        private void DrawNewFamily(float h)
+        {
+            var cat = _newFamily;
+            float t = Time.time - _newFamilyAt;
+            var keep = GUI.matrix;
+            var white = Solid(Color.white);
+            GUI.color = new Color(0.12f, 0.09f, 0.07f, 0.6f * Mathf.Clamp01(t / 0.3f));
+            GUI.DrawTexture(new Rect(0, 0, UiWidth, h), white);
+
+            var center = new Vector2(UiWidth * 0.5f, h * 0.5f - 40);
+            // 뒤에서 천천히 도는 빛줄기
+            float rayA = 0.11f * Mathf.Clamp01(t / 0.5f);
+            for (int i = 0; i < 12; i++)
+            {
+                AroundAt(keep, t * 10f + i * 30f, 1f, center);
+                GUI.color = new Color(1f, 0.92f, 0.65f, rayA);
+                GUI.DrawTexture(new Rect(center.x - 16, center.y - 270, 32, 270), white);
+            }
+
+            // 카드
+            GUI.matrix = keep;
+            GUI.color = Color.white;
+            var area = new Rect(36, center.y - 200, UiWidth - 72, 400);
+            float pop = EaseOutBack(t / 0.4f);
+            AroundAt(keep, 0f, pop, area.center);
+            GUI.Box(area, GUIContent.none, _popupStyle);
+            if (_center == null) _center = new GUIStyle(_menuTitle) { alignment = TextAnchor.MiddleCenter, wordWrap = true };
+            GUI.Label(new Rect(area.x, area.y + 16, area.width, 40), "<size=26><b>새 가족이 생겼어요!</b></size>", _center);
+
+            var pc = new Rect(center.x - 75, area.y + 62, 150, 150);
+            GUI.Box(pc, GUIContent.none, _cardStyle);
+            var cv = ViewOf(cat);
+            var look = cv != null ? cv.Look : LookFor(cat);
+            float hop = Mathf.Abs(Mathf.Sin(t * 3.2f)) * 8f;
+            CuteArt.DrawSprite(new Rect(pc.x + 14, pc.y + 10 - hop, 122, 122), CuteArt.Cat(look, false));
+            // 하트 두 개가 둥실
+            var heart = CuteArt.Item(ItemKind.Heart);
+            for (int i = 0; i < 2; i++)
+            {
+                float ph = (t * 0.7f + i * 0.5f) % 1f;
+                GUI.color = new Color(1f, 1f, 1f, 1f - ph);
+                CuteArt.DrawSprite(new Rect(pc.x + (i == 0 ? -6 : pc.width - 26) , pc.y + 20 - ph * 40, 32, 32), heart);
+            }
+            GUI.color = Color.white;
+
+            GUI.Label(new Rect(area.x, pc.yMax + 10, area.width, 36), $"<size=26><b>{cat.Name}</b></size>", _center);
+            GUI.Label(new Rect(area.x, pc.yMax + 44, area.width, 26), $"<color=#C0603F>{cat.Personality.DisplayName}</color>", _center);
+            if (!string.IsNullOrEmpty(cat.Personality.Description))
+                GUI.Label(new Rect(area.x + 24, pc.yMax + 70, area.width - 48, 46), $"<size=14>{cat.Personality.Description}</size>", _center);
+            if (t > 0.6f && GUI.Button(new Rect(center.x - 80, area.yMax - 62, 160, 48), "환영해!", _btn))
+            {
+                _newFamily = null;
+                SoundKit.Play("meow");
+                if (cv != null) cv.Say("잘 부탁해냥!", 4f);
+            }
+
+            // 꽃가루 (카드 위로)
+            GUI.matrix = keep;
+            var rnd = new System.Random(cat.Id * 17 + 3);
+            for (int i = 0; i < 48; i++)
+            {
+                float vx = (float)(rnd.NextDouble() * 2 - 1) * 280f, vy = -(220f + (float)rnd.NextDouble() * 360f);
+                float spin = (float)(rnd.NextDouble() * 2 - 1) * 540f, delay = (float)rnd.NextDouble() * 0.3f;
+                var col = Confetti[rnd.Next(Confetti.Length)];
+                float tt = t - delay;
+                if (tt < 0f) continue;
+                float x = center.x + vx * tt, y = center.y - 40 + vy * tt + 0.5f * 560f * tt * tt;
+                if (y > h + 20) continue;
+                AroundAt(keep, spin * tt + i * 37f, 1f, new Vector2(x, y));
+                GUI.color = col;
+                GUI.DrawTexture(new Rect(x - 5, y - 3, 10, 6 + (i % 3) * 3), white);
+            }
+            GUI.matrix = keep;
+            GUI.color = Color.white;
+        }
+
+
         private void Awake()
         {
             // 에디터 창이 포커스를 잃어도 고양이들은 계속 살아있게 (모바일에서는 영향 없음)
@@ -301,9 +408,15 @@ namespace CatHealingHouse.View
             Sim.CatAdded += OnCatAdded;
             Sim.CatRemoved += OnCatRemoved;
             Strays.Arrived += (c, p) => { if (CurrentBoard == BoardId.Indoor) Say($"마당에 누가 왔어요! 살짝 나가 볼까요?"); };
-            Strays.FirstDiscovered += p => Say($"새 길냥이 발견: {p.Name}!");
+            Strays.FirstDiscovered += p =>
+            {
+                Say($"새 길냥이 발견: {p.Name}!");
+                var fc = Sim.Cats.FirstOrDefault(x => x.Affiliation == Affiliation.Stray && x.StrayId == p.Id);
+                var fv = fc != null ? ViewOf(fc) : null;
+                if (fv != null) fv.Say("여긴 어디지?", 3.6f);
+            };
             Strays.BecameReady += (c, p) => Say($"{p.Name}가 문 앞에서 기다려요. 탭해서 들여보내 주세요!");
-            Strays.Adopted += (c, p) => { Say($"{p.Name}가 우리 집 고양이가 됐어요! ({c.Personality.DisplayName})"); FitCamera(); };
+            Strays.Adopted += (c, p) => { Say($"{p.Name}가 우리 집 고양이가 됐어요! ({c.Personality.DisplayName})"); FitCamera(); _newFamily = c; _newFamilyAt = Time.time; };
             Strays.Left += p => { if (CurrentBoard == BoardId.Outdoor && p.Affection >= 30) Say($"{p.Name}가 돌아갔어요. 또 올 거예요."); };
             // 중요한 일이 생기면 곧 저장 (영입, 구매·배치, 제작, 스킬)
             Strays.Adopted += (c, p) => { _saveSoon = true; SoundKit.Play("fanfare"); };
@@ -472,6 +585,7 @@ namespace CatHealingHouse.View
                 case InteractOutcome.Adopting: Say($"{n}가 졸졸 따라 들어와요!"); SoundKit.Play("meow"); break;
                 case InteractOutcome.Accepted:
                     SoundKit.Play(a == StrayAction.Pet ? "purr" : "heart");
+                    { var sv = ViewOf(cat); if (sv != null) sv.Say(a == StrayAction.Snack ? "맛있다!" : a == StrayAction.Play ? "재밌어!" : "골골골~"); }
                     string gain = r.AffectionDelta > 0 ? $" 호감 +{r.AffectionDelta:0}" : " (오늘은 충분히 쓰다듬었어요)";
                     Say(a == StrayAction.Snack ? $"{n}가 간식을 냠냠!{gain}"
                       : a == StrayAction.Play ? $"{n}와 신나게 놀았어요!{gain}"
@@ -653,7 +767,7 @@ namespace CatHealingHouse.View
         {
             float yFromTop = Screen.height - screenPos.y;
             if (_menuCat != null && _menuRectGui.Contains(new Vector2(screenPos.x / UiScale, yFromTop / UiScale))) return true;
-            if (_shopOpen || _workshopOpen || _skillsOpen || _away != null) return true; // 창이 열려 있으면 보드는 터치 안 받음
+            if (_shopOpen || _workshopOpen || _skillsOpen || _away != null || _newFamily != null) return true; // 창이 열려 있으면 보드는 터치 안 받음
             var gui = new Vector2(screenPos.x / UiScale, yFromTop / UiScale);
             if (_floatRowGui.Contains(gui) || _profileRectGui.Contains(gui)) return true;
             return yFromTop < TopUiH * UiScale || screenPos.y < BottomBarH * UiScale;
@@ -693,6 +807,25 @@ namespace CatHealingHouse.View
                     var c = _cam.transform.position;
                     int n = Strays.Presence(new Cell(BoardId.Outdoor, _layout.FromWorld(c.x, c.y)));
                     if (n > 0) Say("너무 가까이 다가갔어요!");
+                }
+                // 집 안: 많이 확대하면 가운데 고양이가 알아채고 한마디
+                if (factor < 1f && CurrentBoard == BoardId.Indoor && _cam.orthographicSize < _fitOrthoSize * 0.6f && Time.time - _lastZoomNotice > 2.5f)
+                {
+                    var c = _cam.transform.position;
+                    float best = (float)_layout.Size * 2.5f;
+                    CatView pick = null;
+                    foreach (var v in _catViews)
+                    {
+                        if (v == null || v.Cat.Affiliation != Affiliation.Resident || v.Cat.Cell.Board != BoardId.Indoor || v.Speaking) continue;
+                        float d = Vector2.Distance(v.BodyCenter, c);
+                        if (d < best) { best = d; pick = v; }
+                    }
+                    if (pick != null)
+                    {
+                        _lastZoomNotice = Time.time;
+                        pick.Say(CatThoughts.Noticed(pick.Cat, _uiRng));
+                        SoundKit.Play("meow", 0.5f, 1.15f);
+                    }
                 }
             }
         }
@@ -1062,7 +1195,7 @@ namespace CatHealingHouse.View
         {
             EnsureStyles();
             GUI.skin = _skin;
-            GUI.enabled = _away == null; // 자리를 비운 사이 팝업이 떠 있으면 아래는 못 누름
+            GUI.enabled = _away == null && _newFamily == null; // 자리를 비운 사이 팝업이 떠 있으면 아래는 못 누름
             float s = UiScale;
             GUI.matrix = Matrix4x4.Scale(new Vector3(s, s, 1));
             float h = Screen.height / s;
@@ -1188,6 +1321,7 @@ namespace CatHealingHouse.View
             DrawStrayMenu();
             GUI.enabled = true;
             if (_away != null) DrawAwayPopup(h);
+            else if (_newFamily != null) DrawNewFamily(h);
         }
 
         private void ModeButton(Rect r, string label, Mode m)
@@ -1344,6 +1478,7 @@ namespace CatHealingHouse.View
                 cat.AddMood(2);
                 SoundKit.Play("purr");
                 Say($"{cat.Name}가 골골송을 불러요. 기분 +2");
+                if (cv != null) cv.Say(_uiRng.Next(2) == 0 ? "골골~ 좋아" : "더 해 줘~");
             }
         }
 

@@ -23,6 +23,18 @@ namespace CatHealingHouse.View
         private TextMesh _mark;
         private float _bornAt;
 
+        // ── 혼잣말 말풍선 ──
+        private const int MaxSpeaking = 2; // 한꺼번에 말하는 고양이 수
+        private static int _speaking;
+        private bool _speakingCounted;
+        private Transform _speech;
+        private SpriteRenderer _speechBox, _speechTail;
+        private TextMesh _speechText;
+        private MeshRenderer _speechTextR, _labelR;
+        private float _speechAt = -99f, _speechDur, _nextThought;
+        private System.Random _thoughtRng;
+
+
         // ── 자유롭게 보이는 움직임 (판단은 칸, 화면만 부드럽게) ──
         // 칸마다 서는 자리를 조금씩 다르게, 여러 칸을 지날 때 스프링으로 따라가서 모서리를 가로지르고,
         // 가만히 있을 때도 칸 안에서 가끔 어슬렁거린다.
@@ -99,6 +111,8 @@ namespace CatHealingHouse.View
             mr.sortingOrder = BoardView.LabelOrder + 22;
             bGo.SetActive(false);
             _bornAt = Time.time;
+            _labelR = lr;
+            BuildSpeech(font, material);
         }
 
         private void SyncReaction(float size, float scale)
@@ -136,6 +150,114 @@ namespace CatHealingHouse.View
             }
         }
 
+        private void BuildSpeech(Font font, Material material)
+        {
+            _thoughtRng = new System.Random(_cat.Id * 31 + 5);
+            _nextThought = Time.time + 3f + (float)_thoughtRng.NextDouble() * 9f;
+            var go = new GameObject("Speech");
+            go.transform.SetParent(transform, false);
+            _speech = go.transform;
+
+            _speechBox = new GameObject("Box").AddComponent<SpriteRenderer>();
+            _speechBox.transform.SetParent(_speech, false);
+            _speechBox.sharedMaterial = material;
+            _speechBox.sprite = SpeechArt.Box();
+            _speechBox.drawMode = SpriteDrawMode.Sliced;
+            _speechBox.sortingOrder = BoardView.LabelOrder + 15;
+
+            _speechTail = new GameObject("Tail").AddComponent<SpriteRenderer>();
+            _speechTail.transform.SetParent(_speech, false);
+            _speechTail.sharedMaterial = material;
+            _speechTail.sprite = SpeechArt.Tail();
+            _speechTail.sortingOrder = BoardView.LabelOrder + 16;
+
+            var tGo = new GameObject("Text");
+            tGo.transform.SetParent(_speech, false);
+            _speechText = tGo.AddComponent<TextMesh>();
+            _speechText.font = font;
+            _speechText.fontSize = 48;
+            _speechText.anchor = TextAnchor.MiddleCenter;
+            _speechText.alignment = TextAlignment.Center;
+            _speechText.color = SdfCanvas.Col("#5A4032");
+            _speechTextR = tGo.GetComponent<MeshRenderer>();
+            _speechTextR.sharedMaterial = font.material;
+            _speechTextR.sortingOrder = BoardView.LabelOrder + 17;
+            go.SetActive(false);
+        }
+
+        /// <summary>머리 위에 한마디 띄운다 (혼잣말·쓰다듬기·첫 만남 등).</summary>
+        public void Say(string text, float dur = 3.2f)
+        {
+            if (string.IsNullOrEmpty(text) || _speech == null) return;
+            _speechText.text = text;
+            _speechAt = Time.time;
+            _speechDur = dur;
+            if (!_speakingCounted) { _speaking++; _speakingCounted = true; }
+        }
+
+        public bool Speaking => Time.time - _speechAt < _speechDur;
+
+        private void StopSpeech()
+        {
+            if (_speakingCounted) { _speaking--; _speakingCounted = false; }
+            if (_speech != null && _speech.gameObject.activeSelf) _speech.gameObject.SetActive(false);
+            _speechAt = -99f;
+        }
+
+        private void OnDestroy()
+        {
+            if (_speakingCounted) { _speaking--; _speakingCounted = false; }
+        }
+
+        private void SyncSpeech(float size, float scale, FurnitureInstance f)
+        {
+            float age = Time.time - _speechAt;
+            bool reactionUp = _bubble.gameObject.activeSelf;
+            if (age >= _speechDur || reactionUp)
+            {
+                if (_speakingCounted || _speech.gameObject.activeSelf) StopSpeech();
+                if (Time.time >= _nextThought)
+                {
+                    _nextThought = Time.time + 12f + (float)_thoughtRng.NextDouble() * 18f;
+                    if (_speaking < MaxSpeaking && !reactionUp && !_cat.IsHopping)
+                        Say(CatThoughts.Pick(_cat, f, _thoughtRng));
+                }
+                return;
+            }
+            if (!_speech.gameObject.activeSelf) _speech.gameObject.SetActive(true);
+
+            // 글자 크기에 맞춰 상자를 늘린다 (9-slice, 단위는 칸 크기)
+            _speechText.characterSize = size * 0.1f;
+            _label.text = _cat.Name; // 말하는 동안에는 이름만 (덜 복잡하게)
+            var tb = _speechTextR.localBounds;
+            _speechText.transform.localPosition = new Vector3(-tb.center.x, -tb.center.y, 0);
+            float k = size * 1.7f;
+            float bw = Mathf.Max(tb.size.x + size * 0.6f, size * 1.2f), bh = tb.size.y + size * 0.42f;
+            _speechBox.transform.localScale = new Vector3(k, k, 1);
+            _speechBox.size = new Vector2(bw / k, bh / k);
+            _speechTail.transform.localScale = new Vector3(k, k, 1);
+            _speechTail.transform.localPosition = new Vector3(-bw * 0.18f, -bh * 0.5f + k * 0.045f, 0);
+
+            // 이름표 위에
+            float labelTop = size * 1.05f * scale + (_labelR != null ? _labelR.localBounds.max.y : size * 0.3f);
+            float y = labelTop + size * 0.08f + k * 0.24f + bh * 0.5f + Mathf.Sin(Time.time * 2.3f + _phase) * size * 0.02f;
+            _speech.localPosition = new Vector3(0, y, 0);
+
+            // 톡 튀어나오고 끝에 사르르
+            float p = Mathf.Clamp01(age / 0.28f);
+            const float c1 = 1.70158f, c3 = c1 + 1f;
+            float pop = 1f + c3 * Mathf.Pow(p - 1f, 3f) + c1 * Mathf.Pow(p - 1f, 2f);
+            float a = Mathf.Clamp01((_speechDur - age) / 0.35f);
+            _speech.localScale = new Vector3(pop, pop, 1);
+            var wc = new Color(1f, 1f, 1f, a);
+            _speechBox.color = wc;
+            _speechTail.color = wc;
+            var tc = _speechText.color;
+            tc.a = a;
+            _speechText.color = tc;
+        }
+
+
         public void Sync(BoardId visibleBoard)
         {
             bool visible = _cat.Cell.Board == visibleBoard;
@@ -147,6 +269,7 @@ namespace CatHealingHouse.View
             if (!visible)
             {
                 if (_bubble.gameObject.activeSelf) _bubble.gameObject.SetActive(false);
+                StopSpeech();
                 return;
             }
 
@@ -286,6 +409,7 @@ namespace CatHealingHouse.View
                 ? $"{_cat.Name} <size=30>({profile.TemperamentName})</size>\n<size=32>{ActivityText(_cat, f)} · 호감 {profile.Affection:0}</size>"
                 : $"{_cat.Name}\n<size=32>{ActivityText(_cat, f)}</size>";
             SyncReaction(size, scale);
+            SyncSpeech(size, scale, f);
         }
 
         /// <summary>칸 안의 아무 자리 (육각형 안쪽에 들어오게, 세로는 쿼터뷰 압축).</summary>
