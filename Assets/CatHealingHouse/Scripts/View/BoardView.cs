@@ -123,6 +123,7 @@ namespace CatHealingHouse.View
             _groundSr.sprite = Ground.Sprite;
 
             if (_decorRoot != null) Destroy(_decorRoot.gameObject);
+            _bushes.Clear();
             _decorRoot = new GameObject("Decor").transform;
             _decorRoot.SetParent(transform, false);
             if (!indoor) BuildOutdoorDecor();
@@ -164,7 +165,8 @@ namespace CatHealingHouse.View
                 p += outward * Size * 0.55f;
                 if (onPath(p)) continue;
                 float w = cw * (1.05f + (float)rnd.NextDouble() * 0.35f);
-                Decor("Bush", DecorArt.Bush(rnd.Next(3)), p, w, ObjectOrder(p.y), rnd.NextDouble() < 0.5);
+                var bush = Decor("Bush", DecorArt.Bush(rnd.Next(3)), p, w, ObjectOrder(p.y), rnd.NextDouble() < 0.5);
+                _bushes.Add(new BushState { T = bush.transform, BaseScale = bush.transform.localScale, BasePos = bush.transform.localPosition, Until = -1f });
             }
 
             // 바깥 숲: 소나무 여러 줄. 집 문으로 가는 흙길만 비운다.
@@ -614,6 +616,7 @@ namespace CatHealingHouse.View
         {
             if (_eco == null) return;
             float t = Time.time;
+            UpdateRustle(t);
 
             var aliveHearts = new HashSet<int>();
             foreach (var h in _eco.Hearts)
@@ -797,5 +800,91 @@ namespace CatHealingHouse.View
         }
 
         private static Color Darken(Color c, float k) => new Color(c.r * k, c.g * k, c.b * k, c.a);
-    }
+    
+
+        // ───────────────────────── 기척 신호: 수풀 바스락 ─────────────────────────
+
+        private struct BushState { public Transform T; public Vector3 BaseScale, BasePos; public float Until, Seed; }
+        private readonly List<BushState> _bushes = new List<BushState>();
+        private struct Leaf { public SpriteRenderer R; public Vector3 Vel; public float Born, Spin; }
+        private readonly List<Leaf> _leaves = new List<Leaf>();
+        private static Sprite _leafSprite;
+
+        /// <summary>길냥이가 오기 직전: 그 자리 근처 덤불이 흔들리고 잎사귀가 흩날린다.</summary>
+        public void Rustle(Vector3 world, float seconds)
+        {
+            float r = Size * 2.2f;
+            var local = transform.InverseTransformPoint(world);
+            for (int i = 0; i < _bushes.Count; i++)
+            {
+                var b = _bushes[i];
+                if (b.T == null || (b.BasePos - local).sqrMagnitude > r * r) continue;
+                b.Until = Time.time + seconds;
+                b.Seed = Random.value * 10f;
+                _bushes[i] = b;
+                for (int k = 0; k < 3; k++) SpawnLeaf(b.T.position + new Vector3(Random.Range(-0.3f, 0.3f), Random.Range(0f, 0.4f), 0) * Size, b.T.GetComponent<SpriteRenderer>().sortingOrder + 1);
+            }
+        }
+
+        private void SpawnLeaf(Vector3 at, int order)
+        {
+            if (_leafSprite == null || _leafSprite.texture == null)
+            {
+                var c = new SdfCanvas(48);
+                c.Fill(SdfCanvas.Ellipse(0.5f, 0.5f, 0.42f, 0.2f), SdfCanvas.Col("#7FAE5B"), SdfCanvas.Col("#4E7A3A"), 0.05f);
+                c.Fill(SdfCanvas.Capsule(0.15f, 0.5f, 0.85f, 0.5f, 0.02f), SdfCanvas.Col("#5E8C45"));
+                _leafSprite = c.ToSprite("leaf", 1f, new Vector2(0.5f, 0.5f));
+            }
+            var go = new GameObject("Leaf");
+            go.transform.SetParent(transform, false);
+            go.transform.position = at;
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = _leafSprite;
+            sr.sharedMaterial = _material;
+            sr.sortingOrder = order;
+            float s = Size * 0.18f;
+            go.transform.localScale = new Vector3(s, s, 1);
+            _leaves.Add(new Leaf { R = sr, Vel = new Vector3(Random.Range(-0.6f, 0.6f), Random.Range(0.8f, 1.4f), 0) * Size, Born = Time.time, Spin = Random.Range(-360f, 360f) });
+        }
+
+        private void UpdateRustle(float t)
+        {
+            for (int i = 0; i < _bushes.Count; i++)
+            {
+                var b = _bushes[i];
+                if (b.T == null || b.Until < 0f) continue;
+                float left = b.Until - t;
+                if (left <= 0f)
+                {
+                    b.T.localRotation = Quaternion.identity;
+                    b.T.localScale = b.BaseScale;
+                    b.T.localPosition = b.BasePos;
+                    b.Until = -1f;
+                    _bushes[i] = b;
+                    continue;
+                }
+                float k = Mathf.Clamp01(left / 0.6f);
+                float w = Mathf.Sin(t * 26f + b.Seed) * 7f * k;
+                b.T.localRotation = Quaternion.Euler(0, 0, w);
+                b.T.localScale = new Vector3(b.BaseScale.x * (1f + 0.04f * k * Mathf.Sin(t * 19f + b.Seed)), b.BaseScale.y * (1f - 0.04f * k * Mathf.Sin(t * 19f + b.Seed)), 1f);
+                b.T.localPosition = b.BasePos + new Vector3(Mathf.Sin(t * 31f + b.Seed) * Size * 0.03f * k, 0, 0);
+            }
+            for (int i = _leaves.Count - 1; i >= 0; i--)
+            {
+                var l = _leaves[i];
+                float age = t - l.Born;
+                if (l.R == null || age > 1.2f)
+                {
+                    if (l.R != null) Destroy(l.R.gameObject);
+                    _leaves.RemoveAt(i);
+                    continue;
+                }
+                l.Vel += new Vector3(0, -Size * 2.2f, 0) * Time.deltaTime;
+                l.R.transform.position += l.Vel * Time.deltaTime;
+                l.R.transform.rotation = Quaternion.Euler(0, 0, l.Spin * age);
+                l.R.color = new Color(1, 1, 1, 1f - Mathf.Clamp01((age - 0.7f) / 0.5f));
+                _leaves[i] = l;
+            }
+        }
+}
 }

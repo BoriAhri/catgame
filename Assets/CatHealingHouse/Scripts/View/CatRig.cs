@@ -105,7 +105,14 @@ namespace CatHealingHouse.View
 
         private void Rot(CatPart p, float deg) => _bones[p].localRotation = Quaternion.Euler(0, 0, deg);
         private void Pos(CatPart p, Vector3 offset) => _bones[p].localPosition = _restPos[p] + offset;
-        private void Scale(CatPart p, float x, float y) => _bones[p].localScale = new Vector3(x, y, 1);
+        private static bool IsLeg(CatPart p) => p == CatPart.LegFrontNear || p == CatPart.LegFrontFar || p == CatPart.LegBackNear || p == CatPart.LegBackFar;
+
+        /// <summary>크기 바꾸기. 다리를 많이 접으면(식빵·앉기) 납작하게 눌린 모양 대신 몸 밑에 숨긴다.</summary>
+        private void Scale(CatPart p, float x, float y)
+        {
+            _bones[p].localScale = new Vector3(x, y, 1);
+            if (IsLeg(p)) _renderers[p].enabled = y > 0.7f;
+        }
 
         /// <summary>
         /// 매 프레임 자세를 잡는다. hop 은 걸음 진행도(0~1, 걷는 중일 때), facingLeft 면 좌우 반전.
@@ -117,6 +124,7 @@ namespace CatHealingHouse.View
             // 기본 자세로 되돌리기
             foreach (var kv in _bones)
             {
+                if (IsLeg(kv.Key)) _renderers[kv.Key].enabled = true;
                 kv.Value.localRotation = Quaternion.identity;
                 kv.Value.localScale = Vector3.one;
                 kv.Value.localPosition = _restPos[kv.Key];
@@ -138,6 +146,7 @@ namespace CatHealingHouse.View
             if (time > _nextBlink + 0.14f) _nextBlink = time + Random.Range(2.5f, 5.5f);
             bool eyesClosed = time > _nextBlink && time < _nextBlink + 0.14f;
 
+            float tipCurl = 0f;
             switch (pose)
             {
                 case CatPose.Idle:
@@ -165,6 +174,7 @@ namespace CatHealingHouse.View
                     Pos(CatPart.Head, new Vector3(0, bob * 1.2f, 0));
                     Rot(CatPart.Head, Mathf.Sin(ph * 2f) * 2f);
                     Rot(CatPart.Tail, 14f + Mathf.Sin(ph) * (run ? 16f : 8f));
+                    tipCurl = -14f;
                     break;
                 }
                 case CatPose.Sleep:
@@ -182,6 +192,7 @@ namespace CatHealingHouse.View
                     Rot(CatPart.EarR, -8f);
                     Pos(CatPart.Tail, new Vector3(0.05f, -0.06f, 0));
                     Rot(CatPart.Tail, 70f + Mathf.Sin(t * 0.8f) * 4f);
+                    tipCurl = 45f;
                     eyesClosed = true;
                     break;
                 }
@@ -197,6 +208,7 @@ namespace CatHealingHouse.View
                     Rot(CatPart.Head, Mathf.Sin(t * 0.35f) * 5f);
                     Pos(CatPart.Tail, new Vector3(0.04f, -0.06f, 0));
                     Rot(CatPart.Tail, 62f + Mathf.Sin(t * 0.9f) * 6f);
+                    tipCurl = 38f;
                     // 스르륵 감았다 뜨기 (반쯤 감은 느낌)
                     float doze = Mathf.Repeat(t, 7f);
                     eyesClosed = eyesClosed || (doze > 5.2f && doze < 6.4f);
@@ -216,6 +228,7 @@ namespace CatHealingHouse.View
                     Pos(CatPart.Head, new Vector3(-0.01f, 0.005f, 0));
                     Pos(CatPart.Tail, new Vector3(0.06f, -0.1f, 0));
                     Rot(CatPart.Tail, -55f + Mathf.Sin(t * 0.9f) * 6f);
+                    tipCurl = -35f;
                     break;
                 }
                 case CatPose.Eat:
@@ -261,10 +274,14 @@ namespace CatHealingHouse.View
                     Rot(CatPart.Body, 8f);
                     Rot(CatPart.Head, -4f + Mathf.Sin(t * 0.6f) * 6f);
                     Rot(CatPart.Tail, -30f + Mathf.Sin(t * 1.2f) * 14f);
+                    tipCurl = -25f;
                     Pos(CatPart.Tail, new Vector3(0.02f, -0.08f, 0));
                     break;
                 }
             }
+
+            // 꼬리 끝: 한 박자 늦게 휘어 부드러운 S자
+            if (_bones.ContainsKey(CatPart.TailTip)) Rot(CatPart.TailTip, Mathf.Sin(t * 1.6f - 0.9f) * 14f + tipCurl);
 
             // 쓰다듬기 반응: 자세 위에 얹는다
             float dt = Time.deltaTime;

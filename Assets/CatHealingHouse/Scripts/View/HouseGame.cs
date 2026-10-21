@@ -339,7 +339,13 @@ namespace CatHealingHouse.View
             _pet.Say = m => { Say(m); _saveSoon = true; };
             Sim.CatAdded += OnCatAdded;
             Sim.CatRemoved += OnCatRemoved;
-            Strays.Arrived += (c, p) => { if (CurrentBoard == BoardId.Indoor) Say($"마당에 누가 왔어요! 살짝 나가 볼까요?"); };
+            Strays.Arrived += (c, p) =>
+            {
+                // 기척 신호: 나타난 자리 수풀이 바스락
+                if (_views.TryGetValue(BoardId.Outdoor, out var ov)) ov.Rustle(_layout.ToWorld(c.Cell.Coord), 1.3f);
+                if (CurrentBoard == BoardId.Outdoor) SoundKit.Play("rustle", 0.9f);
+                else Say($"마당에서 바스락 소리가 나요. 누가 온 것 같아요!");
+            };
             Strays.FirstDiscovered += p => Say($"새 길냥이 발견: {p.Name}!");
             Strays.BecameReady += (c, p) => Say($"{p.Name}가 문 앞에서 기다려요. 탭해서 들여보내 주세요!");
             Strays.Adopted += (c, p) => { Say($"{p.Name}가 우리 집 고양이가 됐어요! ({c.Personality.DisplayName})"); FitCamera(); };

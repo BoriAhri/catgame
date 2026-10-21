@@ -57,13 +57,14 @@ namespace CatHealingHouse.Economy
     {
         public int TraySlotCap = 10;              // 칸마다 쌓이는 상한 (나중에 '넉넉한 트레이' 스킬로 증가)
         public double HeartLifetime = 180;         // 하트가 떠 있는 시간(초)
+        public double HeartCooldown = 900;         // 하트를 줍고 나면 그 가구는 이만큼 지나야 다시 뜬다 (밸런싱: 1시간 약 25개)
         public int MaxDropsPerBoard = 5;
 
-        public double FurballPerHop = 0.025;       // 걸을 때 한 칸마다
-        public double WhiskerPerHop = 0.003;
-        public double FurballGroomPerSecond = 0.05;
-        public double FurballScratchPerSecond = 0.04;
-        public double WhiskerScratchPerSecond = 0.008;
+        public double FurballPerHop = 0.015;       // 걸을 때 한 칸마다
+        public double WhiskerPerHop = 0.002;
+        public double FurballGroomPerSecond = 0.03;
+        public double FurballScratchPerSecond = 0.025;
+        public double WhiskerScratchPerSecond = 0.005;
 
         public double PeeChance = 0.65;            // 화장실 한 번 쓸 때 소변일 확률 (나머지는 대변)
 
@@ -111,6 +112,7 @@ namespace CatHealingHouse.Economy
         }
 
         private double Now => Sim.SimTime;
+        private readonly Dictionary<int, double> _heartReadyAt = new Dictionary<int, double>();
 
         // ───────────────────────── 가구 사용 완료 ─────────────────────────
 
@@ -129,7 +131,7 @@ namespace CatHealingHouse.Economy
                 if (kind != ItemKind.None) AddToTray(f, kind, 1);
             }
 
-            if (!_hearts.ContainsKey(f.Id))
+            if (!_hearts.ContainsKey(f.Id) && (!_heartReadyAt.TryGetValue(f.Id, out var ready) || Now >= ready))
                 _hearts[f.Id] = new HeartMarker { FurnitureId = f.Id, Board = f.Board, CreatedAt = Now, ExpiresAt = Now + Tuning.HeartLifetime };
             Changed?.Invoke();
         }
@@ -167,6 +169,7 @@ namespace CatHealingHouse.Economy
         public bool CollectHeart(int furnitureId)
         {
             if (!_hearts.Remove(furnitureId)) return false;
+            _heartReadyAt[furnitureId] = Now + Tuning.HeartCooldown;
             Wallet.Add(ItemKind.Heart, 1);
             Changed?.Invoke();
             return true;

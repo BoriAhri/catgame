@@ -123,6 +123,21 @@ namespace CatHealingHouse.View
             Sweep(open, 0.02f, 520, 780, 0.2f, 0.18f);
             _clips["open"] = Clip("open", open);
 
+            // 바스락: 짧은 잡음 덩어리 여러 개 (수풀 흔들림)
+            var rustle = new float[(int)(0.7f * Rate)];
+            for (int b = 0; b < 7; b++)
+            {
+                int s0 = (int)((0.03f + b * 0.085f + (float)rng.NextDouble() * 0.03f) * Rate), n0 = (int)(0.07f * Rate);
+                float v = 0.09f * (1f - b / 9f);
+                for (int i = 0; i < n0 && s0 + i < rustle.Length; i++)
+                {
+                    float k = i / (float)n0;
+                    rustle[s0 + i] += ((float)rng.NextDouble() * 2 - 1) * v * Mathf.Sin(Mathf.PI * k);
+                }
+            }
+            Smooth(rustle, 0.55f);
+            _clips["rustle"] = Clip("rustle", rustle);
+
             // 골골송: 낮은 잡음을 1초에 25번 정도 출렁이게
             var purr = new float[(int)(1.4f * Rate)];
             for (int i = 0; i < purr.Length; i++) purr[i] = (float)rng.NextDouble() * 2 - 1;
