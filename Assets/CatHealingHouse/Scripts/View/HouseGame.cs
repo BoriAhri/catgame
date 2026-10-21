@@ -117,11 +117,11 @@ namespace CatHealingHouse.View
 
         // UI 배치 (가상 해상도 540 폭 기준)
         private const float UiWidth = 540f;
-        private const float TopBarH = 108f;
+        private const float TopBarH = 104f;
         private const float BottomBarH = 150f;
         private const float CatLineH = 50f;
         private float UiScale => Screen.width / UiWidth;
-        private float TopUiH => TopBarH + 42 + (_showCatPanel && Sim != null ? ResidentCount * CatLineH + 8 : 0);
+        private float TopUiH => TopBarH + (_showCatPanel && Sim != null ? ResidentCount * CatLineH + 16 : 0);
 
         private float _fitOrthoSize;
         private int _lastScreenW, _lastScreenH;
@@ -239,8 +239,7 @@ namespace CatHealingHouse.View
 
             float ph = 150 + lines.Count * 30;
             var area = new Rect(24, (h - ph) * 0.5f, UiWidth - 48, ph);
-            GUI.DrawTexture(new Rect(area.x + 8, area.y + 8, area.width - 16, area.height - 16), Solid(SdfCanvas.Col("#FBF4E6")));
-            GUI.DrawTexture(area, _slotTex, ScaleMode.StretchToFill);
+            GUI.Box(area, GUIContent.none, _popupStyle);
             GUI.Label(new Rect(area.x + 20, area.y + 16, area.width - 40, 32), $"<b>자리를 비운 사이 ({Duration(s.RealSeconds)})</b>", _menuTitle);
             for (int i = 0; i < lines.Count; i++)
                 GUI.Label(new Rect(area.x + 24, area.y + 58 + i * 30, area.width - 48, 28), lines[i], _shopSmall);
@@ -269,7 +268,8 @@ namespace CatHealingHouse.View
             _cam.transform.rotation = Quaternion.identity;
 
             _material = new Material(Shader.Find("Sprites/Default")) { name = "CuteArt (runtime)" };
-            _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _font = UiKit.LoadFont();
+            if (_font == null) _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
             // 저장이 있으면 이어서, 없으면 샘플 배치로 새로 시작
             _loaded = LoadFile();
@@ -495,7 +495,7 @@ namespace CatHealingHouse.View
             r.y = Mathf.Clamp(r.y, TopUiH + 4, h - BottomBarH - MenuH - 4);
             _menuRectGui = r;
 
-            GUI.DrawTexture(r, _toastTex, ScaleMode.StretchToFill);
+            GUI.Box(r, GUIContent.none, _toastStyle);
             GUI.Label(new Rect(r.x + 14, r.y + 8, r.width - 56, 26), $"<b>{_menuCat.Name}</b> · {p.TemperamentName} · 호감 {p.Affection:0}", _menuTitle);
             if (GUI.Button(new Rect(r.xMax - 42, r.y + 6, 34, 30), "X", _btn)) { CloseMenu(); return; }
 
@@ -641,7 +641,7 @@ namespace CatHealingHouse.View
 
         private Vector2 TrayTargetScreen() => new Vector2(Screen.width * 0.5f, BottomBarH * UiScale * 0.45f);
 
-        private Vector2 MoneyChipScreen() => new Vector2(30 * UiScale, Screen.height - 76 * UiScale);
+        private Vector2 MoneyChipScreen() => new Vector2(28 * UiScale, Screen.height - 28 * UiScale);
 
         // ───────────────────────── 입력 ─────────────────────────
 
@@ -651,7 +651,7 @@ namespace CatHealingHouse.View
             if (_menuCat != null && _menuRectGui.Contains(new Vector2(screenPos.x / UiScale, yFromTop / UiScale))) return true;
             if (_shopOpen || _workshopOpen || _skillsOpen || _away != null) return true; // 창이 열려 있으면 보드는 터치 안 받음
             var gui = new Vector2(screenPos.x / UiScale, yFromTop / UiScale);
-            if (_shopButtonGui.Contains(gui) || _workshopButtonGui.Contains(gui) || _skillButtonGui.Contains(gui)) return true;
+            if (_floatRowGui.Contains(gui)) return true;
             return yFromTop < TopUiH * UiScale || screenPos.y < BottomBarH * UiScale;
         }
 
@@ -976,21 +976,34 @@ namespace CatHealingHouse.View
         private GUIStyle _btn, _btnOn, _btnOff, _label, _small, _chip, _trayCount, _trayValue, _toast, _menuTitle, _menuBtn, _menuTitleLight, _shopSmall,
             _shopHint, _shopHintCenter, _shopNameCenter, _shopBtnLabel, _placeTitle, _clockStyle;
         private Texture2D _panelTex, _slotTex, _toastTex;
+        private GUISkin _skin;
+        private GUIStyle _panelStyle, _cardStyle, _popupStyle, _toastStyle, _pillStyle, _iconBtnLabel, _badge;
+        private Rect _floatRowGui;
 
         private void EnsureStyles()
         {
             if (_btn != null) return;
-            _btn = new GUIStyle(GUI.skin.button) { fontSize = 17, wordWrap = true };
-            _btnOn = new GUIStyle(_btn);
-            _btnOn.normal = _btnOn.active;
-            _btnOn.normal.textColor = new Color(1f, 0.85f, 0.55f);
-            _btnOn.fontStyle = FontStyle.Bold;
+            _skin = UiKit.MakeSkin(GUI.skin);
+            GUI.skin = _skin;
+            _btn = new GUIStyle(_skin.button) { fontSize = 17, wordWrap = true };
+            _btnOn = UiKit.Style(UiKit.ButtonOnTex, 24, Color.white, 17);
+            _panelStyle = UiKit.Style(UiKit.PanelTex, 24);
+            _cardStyle = UiKit.Style(UiKit.CardTex, 22);
+            _popupStyle = UiKit.Style(UiKit.PopupTex, 28);
+            _toastStyle = UiKit.Style(UiKit.PillTex, 19, UiKit.Ink, 16);
+            _pillStyle = UiKit.Style(UiKit.PillTex, 19, UiKit.Ink, 18);
+            _pillStyle.alignment = TextAnchor.MiddleLeft;
+            _pillStyle.padding = new RectOffset(38, 10, 2, 4);
+            _iconBtnLabel = new GUIStyle(_skin.label) { fontSize = 16, alignment = TextAnchor.LowerCenter, wordWrap = false };
+            _iconBtnLabel.normal.textColor = UiKit.Ink;
+            _badge = UiKit.Style(UiKit.ButtonOnTex, 16, Color.white, 13);
+            _badge.padding = new RectOffset(2, 2, 0, 2);
             _label = new GUIStyle(GUI.skin.label) { fontSize = 16, wordWrap = true };
-            _label.normal.textColor = Color.white;
+            _label.normal.textColor = UiKit.Ink;
             _small = new GUIStyle(GUI.skin.label) { fontSize = 14, richText = true };
-            _small.normal.textColor = Color.white;
+            _small.normal.textColor = UiKit.Ink;
             _chip = new GUIStyle(GUI.skin.label) { fontSize = 18, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft };
-            _chip.normal.textColor = new Color(1f, 0.97f, 0.9f);
+            _chip.normal.textColor = UiKit.Ink;
             _trayCount = new GUIStyle(GUI.skin.label) { fontSize = 15, fontStyle = FontStyle.Bold, alignment = TextAnchor.UpperRight };
             _trayCount.normal.textColor = SdfCanvas.Col("#5E4B3C");
             _trayValue = new GUIStyle(GUI.skin.label) { fontSize = 13, alignment = TextAnchor.LowerCenter };
@@ -1000,20 +1013,18 @@ namespace CatHealingHouse.View
             _menuTitle = new GUIStyle(GUI.skin.label) { fontSize = 16, richText = true, alignment = TextAnchor.MiddleLeft };
             _menuTitle.normal.textColor = SdfCanvas.Col("#5E4B3C");
             _menuTitleLight = new GUIStyle(_menuTitle) { fontSize = 20, alignment = TextAnchor.MiddleRight };
-            _menuTitleLight.normal.textColor = new Color(1f, 0.97f, 0.9f);
+            _menuTitleLight.normal.textColor = UiKit.Ink;
             _shopSmall = new GUIStyle(GUI.skin.label) { fontSize = 13, richText = true, wordWrap = true };
             _shopSmall.normal.textColor = SdfCanvas.Col("#7A6352");
             _shopHint = new GUIStyle(GUI.skin.label) { fontSize = 14, richText = true };
-            _shopHint.normal.textColor = new Color(1f, 0.95f, 0.86f);
+            _shopHint.normal.textColor = UiKit.InkSoft;
             _shopHintCenter = new GUIStyle(_shopSmall) { alignment = TextAnchor.MiddleCenter, wordWrap = false };
             _shopNameCenter = new GUIStyle(_menuTitle) { fontSize = 15, alignment = TextAnchor.MiddleCenter };
             _shopBtnLabel = new GUIStyle(_menuTitle) { fontSize = 20, alignment = TextAnchor.MiddleCenter };
             _placeTitle = new GUIStyle(_menuTitleLight) { alignment = TextAnchor.MiddleLeft };
             _clockStyle = new GUIStyle(_chip) { fontSize = 17, alignment = TextAnchor.MiddleLeft };
-            _btnOff = new GUIStyle(_btn);
-            _btnOff.normal.textColor = new Color(0.75f, 0.68f, 0.62f);
-            _btnOff.hover.textColor = _btnOff.normal.textColor;
-            _menuBtn = new GUIStyle(GUI.skin.button) { fontSize = 16, richText = true, wordWrap = true, fontStyle = FontStyle.Bold };
+            _btnOff = UiKit.Style(UiKit.ButtonOffTex, 24, SdfCanvas.Col("#A8957F"), 17);
+            _menuBtn = new GUIStyle(_skin.button) { fontSize = 16, richText = true, wordWrap = true };
             _panelTex = CuteArt.Panel(SdfCanvas.Col("#B98A62"), SdfCanvas.Col("#5E4B3C"));
             _slotTex = CuteArt.Panel(SdfCanvas.Col("#FBF4E6"), SdfCanvas.Col("#8E6A4B"));
             _toastTex = CuteArt.Panel(new Color(0.98f, 0.95f, 0.89f, 0.95f), SdfCanvas.Col("#B98A62"));
@@ -1022,45 +1033,42 @@ namespace CatHealingHouse.View
         private void OnGUI()
         {
             EnsureStyles();
+            GUI.skin = _skin;
+            GUI.enabled = _away == null; // 자리를 비운 사이 팝업이 떠 있으면 아래는 못 누름
             float s = UiScale;
             GUI.matrix = Matrix4x4.Scale(new Vector3(s, s, 1));
             float h = Screen.height / s;
 
-            // ── 위쪽 바: 보드 전환 + 모드
-            GUI.Box(new Rect(0, 0, UiWidth, TopBarH), GUIContent.none);
-            float x = 6, y = 6, bh = 42;
-            int outside = Strays.StrayCount;
-            string boardLabel = CurrentBoard == BoardId.Indoor ? (outside > 0 ? $"마당에 냥{outside} ▶" : "실내 ▶ 마당") : "마당 ▶ 실내";
-            if (GUI.Button(new Rect(x, y, 116, bh), boardLabel, CurrentBoard == BoardId.Indoor && outside > 0 ? _btnOn : _btn))
-                ShowBoard(CurrentBoard == BoardId.Indoor ? BoardId.Outdoor : BoardId.Indoor);
-            x += 120;
-            ModeButton(new Rect(x, y, 100, bh), "구경", Mode.Play); x += 104;
-            ModeButton(new Rect(x, y, 100, bh), "치우기", Mode.Remove);
-
-            // ── 시계 (게임 하루 = 현실 24분)
+            // ── 위쪽: 재화 알약 다섯 개
+            float bh = 42;
             {
+                var kinds = new[] { ItemKind.Money, ItemKind.Heart, ItemKind.Furball, ItemKind.Whisker, ItemKind.Kibble };
+                float pw = (UiWidth - 16 - 4 * 6) / 5f;
+                for (int i = 0; i < kinds.Length; i++)
+                {
+                    var pr = new Rect(8 + i * (pw + 6), 8, pw, 40);
+                    GUI.Box(pr, Economy.Wallet.Get(kinds[i]).ToString("N0"), _pillStyle);
+                    CuteArt.DrawIcon(new Rect(pr.x + 6, pr.y + 6, 28, 28), kinds[i]);
+                }
+            }
+
+            // ── 시계 알약 (게임 하루 = 현실 24분)
+            {
+                var cr = new Rect(8, 56, 204, 40);
+                GUI.Box(cr, $"{Clock.Day}일차 {Clock.Label}", _pillStyle);
                 var kind = Daylight.Kind(Clock.Hour);
                 var icon = kind == LightKind.Moon ? CuteArt.Moon() : CuteArt.Disk();
                 var old = GUI.color;
-                GUI.color = kind == LightKind.Moon ? SdfCanvas.Col("#FFF3C4") : kind == LightKind.Sun ? SdfCanvas.Col("#FFD36B") : SdfCanvas.Col("#B9A3D6");
-                CuteArt.DrawSprite(new Rect(UiWidth - 198, 12, 28, 28), icon);
+                GUI.color = kind == LightKind.Moon ? SdfCanvas.Col("#E9C96A") : kind == LightKind.Sun ? SdfCanvas.Col("#FFC94D") : SdfCanvas.Col("#B9A3D6");
+                CuteArt.DrawSprite(new Rect(cr.x + 7, cr.y + 7, 26, 26), icon);
                 GUI.color = old;
-                GUI.Label(new Rect(UiWidth - 166, 4, 162, 42), $"{Clock.Day}일차 {Clock.Label}", _clockStyle);
             }
 
-            // ── 재화
-            y = 56;
-            x = 8;
-            Chip(ref x, y, ItemKind.Money, Economy.Wallet.Money);
-            Chip(ref x, y, ItemKind.Heart, Economy.Wallet.Hearts);
-            Chip(ref x, y, ItemKind.Furball, Economy.Wallet.Furballs);
-            Chip(ref x, y, ItemKind.Whisker, Economy.Wallet.Whiskers);
-            Chip(ref x, y, ItemKind.Kibble, Economy.Wallet.Kibble);
-
             var board = World.GetBoard(CurrentBoard);
-            if (_mode == Mode.Place || _mode == Mode.Remove || _mode == Mode.Distance)
+            float y = 56;
+            if (_mode == Mode.Place || _mode == Mode.Distance)
             {
-                if (GUI.Button(new Rect(UiWidth - 104, y, 98, bh), _mode == Mode.Distance ? "거리맵 끄기" : "거리맵", _mode == Mode.Distance ? _btnOn : _btn))
+                if (GUI.Button(new Rect(UiWidth - 260, y, 100, 40), _mode == Mode.Distance ? "거리 끄기" : "거리맵", _mode == Mode.Distance ? _btnOn : _btn))
                 {
                     _mode = _mode == Mode.Distance ? Mode.Place : Mode.Distance;
                     Say(_mode == Mode.Distance ? "고양이가 쓸 수 있는 가구를 탭하세요." : "가구를 골라 놓을 칸을 탭하세요.");
@@ -1075,7 +1083,7 @@ namespace CatHealingHouse.View
             if (!string.IsNullOrEmpty(_message) && Time.time - _messageTime < 4f)
             {
                 var r = new Rect(30, TopUiH + 6, UiWidth - 60, 40);
-                GUI.DrawTexture(r, _toastTex, ScaleMode.StretchToFill);
+                GUI.Box(r, GUIContent.none, _toastStyle);
                 GUI.Label(r, _message, _toast);
             }
 
@@ -1083,16 +1091,30 @@ namespace CatHealingHouse.View
             if (_mode == Mode.Place || _mode == Mode.Distance) DrawPlaceBar(h);
             else DrawTray(h);
 
-            // ── 상점 버튼 (오른쪽 아래, 트레이 위) ── 구경 모드에서만
-            _shopButtonGui = _workshopButtonGui = _skillButtonGui = Rect.zero;
-            if (_mode == Mode.Play && !_shopOpen && !_workshopOpen && !_skillsOpen)
+            // ── 아래 버튼 줄 (트레이 위): 마당/집, 치우기, 스킬, 공방, 상점
+            _shopButtonGui = _workshopButtonGui = _skillButtonGui = _floatRowGui = Rect.zero;
+            if ((_mode == Mode.Play || _mode == Mode.Remove) && !_shopOpen && !_workshopOpen && !_skillsOpen)
             {
-                _shopButtonGui = FloatButton(new Rect(UiWidth - 122, h - BottomBarH - 66, 112, 58), ItemKind.Money, "상점");
-                if (GUI.Button(_shopButtonGui, GUIContent.none, GUIStyle.none)) { _shopOpen = true; _shopScroll = Vector2.zero; CloseMenu(); }
-                _workshopButtonGui = FloatButton(new Rect(UiWidth - 240, h - BottomBarH - 66, 112, 58), ItemKind.Furball, "공방");
-                if (GUI.Button(_workshopButtonGui, GUIContent.none, GUIStyle.none)) { _workshopOpen = true; _popScroll = Vector2.zero; CloseMenu(); }
-                _skillButtonGui = FloatButton(new Rect(UiWidth - 358, h - BottomBarH - 66, 112, 58), ItemKind.Heart, "스킬");
-                if (GUI.Button(_skillButtonGui, GUIContent.none, GUIStyle.none)) { _skillsOpen = true; _popScroll = Vector2.zero; CloseMenu(); }
+                float bw = (UiWidth - 16 - 4 * 8) / 5f, by = h - BottomBarH - 82;
+                _floatRowGui = new Rect(8, by, UiWidth - 16, 74);
+                int outside = Strays.StrayCount;
+                bool indoor = CurrentBoard == BoardId.Indoor;
+                if (IconButton(new Rect(8, by, bw, 74), UiKit.Icon(indoor ? "tree" : "house"), indoor ? "마당" : "집", false, indoor ? outside : 0))
+                    ShowBoard(indoor ? BoardId.Outdoor : BoardId.Indoor);
+                bool removing = _mode == Mode.Remove;
+                if (IconButton(new Rect(8 + (bw + 8), by, bw, 74), UiKit.Icon("broom"), removing ? "끝내기" : "치우기", removing, 0))
+                {
+                    _mode = removing ? Mode.Play : Mode.Remove;
+                    Say(removing ? "치우기를 끝냈어요." : "치울 가구를 탭하세요. 보관함으로 돌아가요.");
+                    RefreshViews();
+                    FitCamera();
+                }
+                _skillButtonGui = new Rect(8 + 2 * (bw + 8), by, bw, 74);
+                if (IconButton(_skillButtonGui, CuteArt.Item(ItemKind.Heart), "스킬", false, 0)) { _mode = Mode.Play; _skillsOpen = true; _popScroll = Vector2.zero; CloseMenu(); RefreshViews(); }
+                _workshopButtonGui = new Rect(8 + 3 * (bw + 8), by, bw, 74);
+                if (IconButton(_workshopButtonGui, UiKit.Icon("yarn"), "공방", false, 0)) { _mode = Mode.Play; _workshopOpen = true; _popScroll = Vector2.zero; CloseMenu(); RefreshViews(); }
+                _shopButtonGui = new Rect(8 + 4 * (bw + 8), by, bw, 74);
+                if (IconButton(_shopButtonGui, UiKit.Icon("bag"), "상점", false, 0)) { _mode = Mode.Play; _shopOpen = true; _shopScroll = Vector2.zero; CloseMenu(); RefreshViews(); }
             }
             if (_shopOpen) DrawShopPopup(h);
             if (_workshopOpen) DrawWorkshopPopup(h);
@@ -1100,6 +1122,7 @@ namespace CatHealingHouse.View
 
             // ── 길냥이 메뉴 (맨 위에)
             DrawStrayMenu();
+            GUI.enabled = true;
             if (_away != null) DrawAwayPopup(h);
         }
 
@@ -1127,28 +1150,28 @@ namespace CatHealingHouse.View
 
         private void DrawCatPanel(HexBoard board)
         {
-            float y = TopBarH + 4;
-            if (GUI.Button(new Rect(6, y, 128, 34), _showCatPanel ? "고양이 정보 ▲" : "고양이 정보 ▼", _btn))
-            {
-                _showCatPanel = !_showCatPanel;
-                FitCamera();
-            }
-            // (반전 버튼은 아래 놓기 막대로 옮김)
-            if (GUI.Button(new Rect(UiWidth - 104, y, 98, 34), $"배속 x{_speed:0}", _btn))
+            float y = 56;
+            // 고양이 정보 펼치기 (고양이 얼굴) + 배속
+            var cb = new Rect(UiWidth - 154, y, 82, 40);
+            if (GUI.Button(cb, GUIContent.none, _showCatPanel ? _btnOn : _btn)) { _showCatPanel = !_showCatPanel; FitCamera(); }
+            CuteArt.DrawSprite(new Rect(cb.x + 8, cb.y + 5, 30, 30), UiKit.Icon("cat"));
+            GUI.Label(new Rect(cb.x + 38, cb.y, 40, 40), _showCatPanel ? "▲" : "▼", _shopNameCenter);
+            if (GUI.Button(new Rect(UiWidth - 66, y, 58, 40), $"x{_speed:0}", _speed > 1 ? _btnOn : _btn))
                 _speed = _speed >= 10f ? 1f : _speed >= 4f ? 10f : 4f;
             if (!_showCatPanel) return;
 
-            y += 38;
-            GUI.Box(new Rect(4, y, UiWidth - 8, ResidentCount * CatLineH + 8), GUIContent.none);
+            y = TopBarH;
+            GUI.Box(new Rect(6, y, UiWidth - 12, ResidentCount * CatLineH + 12), GUIContent.none, _panelStyle);
+            y += 6;
             foreach (var cat in Sim.Cats)
             {
                 if (cat.Affiliation != Affiliation.Resident) continue;
                 var f = cat.HasTarget ? World.GetFurniture(cat.TargetFurnitureId) : null;
-                string Need(string label, double v) => v < Sim.Tuning.NeedThreshold ? $"<color=#FFB08A>{label} {v:0}</color>" : $"{label} {v:0}";
+                string Need(string label, double v) => v < Sim.Tuning.NeedThreshold ? $"<color=#D2694A>{label} {v:0}</color>" : $"{label} {v:0}";
                 string mood = cat.Mood >= 80 ? " 행복" : cat.Mood < 50 ? " 시무룩" : "";
-                GUI.Label(new Rect(12, y + 4, UiWidth - 24, CatLineH),
-                    $"<b>{cat.Name}</b> <color=#C9B8A6>({cat.Personality.DisplayName})</color>  {CatView.ActivityText(cat, f)}  <color=#F4C2C2>기분 {cat.Mood:0}{mood}</color>\n" +
-                    $"{Need("배고픔", cat.Needs.Hunger)} · {Need("배변", cat.Needs.Bladder)} · {Need("에너지", cat.Needs.Energy)} · {Need("즐거움", cat.Needs.Fun)}",
+                GUI.Label(new Rect(18, y + 2, UiWidth - 36, CatLineH),
+                    $"{cat.Name} <color=#A08876>({cat.Personality.DisplayName})</color>  {CatView.ActivityText(cat, f)}  <color=#D9788A>기분 {cat.Mood:0}{mood}</color>\n" +
+                    $"<size=13>{Need("배고픔", cat.Needs.Hunger)} · {Need("배변", cat.Needs.Bladder)} · {Need("에너지", cat.Needs.Energy)} · {Need("즐거움", cat.Needs.Fun)}</size>",
                     _small);
                 y += CatLineH;
             }
@@ -1157,7 +1180,7 @@ namespace CatHealingHouse.View
         private void DrawTray(float h)
         {
             var area = new Rect(0, h - BottomBarH, UiWidth, BottomBarH);
-            GUI.DrawTexture(area, _panelTex, ScaleMode.StretchToFill);
+            GUI.Box(area, GUIContent.none, _panelStyle);
             GUI.Label(new Rect(14, area.y + 6, UiWidth - 28, 22), Economy.Tray.Count == 0
                 ? "트레이 · 고양이가 가구를 쓰면 여기에 쌓여요"
                 : $"트레이 · 탭한 칸만 돈으로 바뀌어요 (칸마다 최대 {Economy.Tuning.TraySlotCap}개)", _small);
@@ -1170,7 +1193,7 @@ namespace CatHealingHouse.View
             {
                 var slot = Economy.Tray[i];
                 var r = new Rect(i * (slotW + 6), 0, slotW, slotH);
-                GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
+                GUI.Box(r, GUIContent.none, _cardStyle);
                 CuteArt.DrawIcon(new Rect(r.x + 18, r.y + 10, 56, 56), slot.Kind);
                 GUI.Label(new Rect(r.x, r.y + 6, r.width - 10, 22), $"×{slot.Count}", _trayCount);
                 GUI.Label(new Rect(r.x, r.y, r.width, r.height - 8), $"{RewardTable.Name(slot.Kind)}\n{slot.Value}원", _trayValue);
@@ -1217,8 +1240,7 @@ namespace CatHealingHouse.View
             float pw = UiWidth - 28, ph = Mathf.Min(660, h - 160);
             var area = new Rect(14, (h - ph) * 0.5f, pw, ph);
             // 불투명한 바탕 + 둥근 테두리
-            GUI.DrawTexture(new Rect(area.x + 8, area.y + 8, area.width - 16, area.height - 16), Solid(SdfCanvas.Col("#B98A62")));
-            GUI.DrawTexture(area, _panelTex, ScaleMode.StretchToFill);
+            GUI.Box(area, GUIContent.none, _popupStyle);
             string[] tabs = { "가구", "넓히기", "사료" };
             for (int i = 0; i < tabs.Length; i++)
                 if (GUI.Button(new Rect(area.x + 12 + i * 98, area.y + 12, 92, 40), tabs[i], _shopTab == i ? _btnOn : _btn)) { _shopTab = i; _shopScroll = Vector2.zero; }
@@ -1235,12 +1257,18 @@ namespace CatHealingHouse.View
             if (e.type == EventType.MouseDown && !area.Contains(e.mousePosition)) { _shopOpen = false; e.Use(); }
         }
 
-        private Rect FloatButton(Rect r, ItemKind icon, string label)
+        /// <summary>아이콘 위, 글자 아래인 둥근 버튼. badge 가 0 보다 크면 오른쪽 위에 숫자 방울.</summary>
+        private bool IconButton(Rect r, Sprite icon, string label, bool on, int badge)
         {
-            GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
-            CuteArt.DrawIcon(new Rect(r.x + 8, r.y + 11, 36, 36), icon);
-            GUI.Label(new Rect(r.x + 44, r.y, 64, 58), $"<b>{label}</b>", _shopBtnLabel);
-            return r;
+            bool clicked = GUI.Button(r, GUIContent.none, on ? _btnOn : _btn);
+            if (icon != null) CuteArt.DrawSprite(new Rect(r.center.x - 19, r.y + 7, 38, 38), icon);
+            var ls = _iconBtnLabel;
+            var old = ls.normal.textColor;
+            if (on) ls.normal.textColor = Color.white;
+            GUI.Label(new Rect(r.x, r.y, r.width, r.height - 9), label, ls);
+            ls.normal.textColor = old;
+            if (badge > 0) GUI.Box(new Rect(r.xMax - 24, r.y - 6, 28, 26), badge.ToString(), _badge);
+            return clicked;
         }
 
         /// <summary>가운데 팝업 틀: 어두운 뒷배경 + 패널 + 탭 + 닫기. 닫기를 누르거나 바깥을 누르면 false.</summary>
@@ -1249,8 +1277,7 @@ namespace CatHealingHouse.View
             GUI.DrawTexture(new Rect(0, 0, UiWidth, h), Solid(new Color(0.12f, 0.09f, 0.07f, 0.55f)));
             float pw = UiWidth - 28, ph = Mathf.Min(660, h - 160);
             var area = new Rect(14, (h - ph) * 0.5f, pw, ph);
-            GUI.DrawTexture(new Rect(area.x + 8, area.y + 8, area.width - 16, area.height - 16), Solid(SdfCanvas.Col("#B98A62")));
-            GUI.DrawTexture(area, _panelTex, ScaleMode.StretchToFill);
+            GUI.Box(area, GUIContent.none, _popupStyle);
             for (int i = 0; i < tabs.Length; i++)
                 if (GUI.Button(new Rect(area.x + 12 + i * 98, area.y + 12, 92, 40), tabs[i], tab == i ? _btnOn : _btn)) { tab = i; _popScroll = Vector2.zero; }
             if (_popRight == null) _popRight = new GUIStyle(_menuTitleLight) { fontSize = 17, alignment = TextAnchor.MiddleRight, wordWrap = false };
@@ -1298,7 +1325,7 @@ namespace CatHealingHouse.View
             {
                 var rc = recipes[i];
                 var r = new Rect(0, i * (rh + 8), view.width - 20, rh);
-                GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
+                GUI.Box(r, GUIContent.none, _cardStyle);
                 var sprite = kind == RecipeKind.Toy ? CuteArt.Furniture(rc.Furniture) : CraftArt.CostumeIcon(rc.CostumeId);
                 CuteArt.DrawSprite(new Rect(r.x + 12, r.y + 14, 84, 84), sprite);
                 GUI.Label(new Rect(r.x + 108, r.y + 8, r.width - 120, 26), $"<b>{rc.Name}</b>", _menuTitle);
@@ -1331,7 +1358,7 @@ namespace CatHealingHouse.View
             {
                 var cat = cats[i];
                 var r = new Rect(0, i * (rh + 8), view.width - 20, rh);
-                GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
+                GUI.Box(r, GUIContent.none, _cardStyle);
                 GUI.Label(new Rect(r.x + 14, r.y + 8, 200, 26), $"<b>{cat.Name}</b>", _menuTitle);
                 GUI.Label(new Rect(r.x + 14, r.y + 34, 200, 22), cat.Costume != null ? $"입은 옷: {Costumes.NameOf(cat.Costume)}" : "입은 옷 없음", _shopSmall);
                 float bx = r.x + 12;
@@ -1374,7 +1401,7 @@ namespace CatHealingHouse.View
                 int lv = Skills.Level(d.Id);
                 long cost = Skills.NextCost(d.Id);
                 var r = new Rect(0, i * (rh + 8), view.width - 20, rh);
-                GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
+                GUI.Box(r, GUIContent.none, _cardStyle);
                 CuteArt.DrawIcon(new Rect(r.x + 14, r.y + 18, 60, 60), ItemKind.Heart);
                 GUI.Label(new Rect(r.x + 86, r.y + 8, r.width - 100, 26), $"<b>{d.Name}</b>  Lv {lv}/{d.MaxLevel}", _menuTitle);
                 GUI.Label(new Rect(r.x + 86, r.y + 34, r.width - 100, 22), d.Desc, _shopSmall);
@@ -1435,7 +1462,7 @@ namespace CatHealingHouse.View
                 var r = new Rect((i % cols) * (cw + 8), (i / cols) * (ch + 8), cw, ch);
                 var old = GUI.color;
                 if (!can) GUI.color = new Color(1, 1, 1, 0.55f);
-                GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
+                GUI.Box(r, GUIContent.none, _cardStyle);
                 var sprite = CuteArt.Furniture(d);
                 if (sprite != null) CuteArt.DrawSprite(new Rect(r.x + 14, r.y + 8, r.width - 28, 72), sprite);
                 else GUI.Label(new Rect(r.x, r.y + 30, r.width, 30), "(바닥 무늬)", _shopHintCenter);
@@ -1460,7 +1487,7 @@ namespace CatHealingHouse.View
         private void DrawPlaceBar(float h)
         {
             var area = new Rect(0, h - BottomBarH, UiWidth, BottomBarH);
-            GUI.DrawTexture(area, _panelTex, ScaleMode.StretchToFill);
+            GUI.Box(area, GUIContent.none, _panelStyle);
             var d = _selectedDef;
             if (d == null) return;
             int stock = Shop.Stock(d);
@@ -1505,7 +1532,7 @@ namespace CatHealingHouse.View
                 var board = World.GetBoard(id);
                 long cost = Shop.ExpandCost(id);
                 var r = new Rect(body.x, body.y + i * (ch + 12), body.width, ch);
-                GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
+                GUI.Box(r, GUIContent.none, _cardStyle);
                 string name = id == BoardId.Indoor ? "실내 넓히기" : "마당 넓히기";
                 GUI.Label(new Rect(r.x + 12, r.y + 8, r.width - 24, 26), $"<b>{name}</b>", _menuTitle);
                 if (cost < 0)
@@ -1535,7 +1562,7 @@ namespace CatHealingHouse.View
         private void DrawShopKibble(Rect body)
         {
             var r = new Rect(body.x, body.y, body.width, 150);
-            GUI.DrawTexture(r, _slotTex, ScaleMode.StretchToFill);
+            GUI.Box(r, GUIContent.none, _cardStyle);
             CuteArt.DrawIcon(new Rect(r.x + 14, r.y + 14, 64, 64), ItemKind.Kibble);
             GUI.Label(new Rect(r.x + 90, r.y + 10, r.width - 100, 26), $"<b>길냥이 사료 {Shop.Tuning.KibblePackSize}개</b>", _menuTitle);
             GUI.Label(new Rect(r.x + 90, r.y + 38, r.width - 100, 44), $"마당 밥그릇을 한 번 채우는 데 1개 (3끼). 지금 {Economy.Wallet.Kibble}개", _shopSmall);
