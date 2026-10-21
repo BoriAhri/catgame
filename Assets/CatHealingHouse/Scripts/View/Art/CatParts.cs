@@ -11,6 +11,8 @@ namespace CatHealingHouse.View.Art
     public enum CatPart
     {
         Shadow, Tail, LegBackFar, LegFrontFar, Body, LegBackNear, LegFrontNear, EarL, EarR, Head, EyesOpen, EyesClosed,
+        // 쓰다듬기 표정 (머리에 매달림, 평소엔 꺼져 있음)
+        Blush, EyesHalf, EyesHappy,
     }
 
     /// <summary>
@@ -22,6 +24,9 @@ namespace CatHealingHouse.View.Art
         /// <summary>캔버스 좌표(0~1)의 관절 위치. 루트(발바닥 중앙)는 Root.</summary>
         public static readonly Vector2 Root = new Vector2(0.47f, 0.10f);
 
+        /// <summary>부위 그림 해상도 (크게 확대해도 또렷하게).</summary>
+        public const int Res = 384;
+
         public static readonly Dictionary<CatPart, Vector2> Joint = new Dictionary<CatPart, Vector2>
         {
             { CatPart.Shadow, new Vector2(0.45f, 0.10f) },
@@ -32,6 +37,9 @@ namespace CatHealingHouse.View.Art
             { CatPart.EarR, new Vector2(0.745f, 0.655f) },
             { CatPart.EyesOpen, new Vector2(0.66f, 0.535f) },
             { CatPart.EyesClosed, new Vector2(0.66f, 0.535f) },
+            { CatPart.EyesHalf, new Vector2(0.66f, 0.535f) },
+            { CatPart.EyesHappy, new Vector2(0.66f, 0.535f) },
+            { CatPart.Blush, new Vector2(0.66f, 0.48f) },
             { CatPart.LegFrontNear, new Vector2(0.56f, 0.215f) },
             { CatPart.LegFrontFar, new Vector2(0.49f, 0.215f) },
             { CatPart.LegBackNear, new Vector2(0.32f, 0.215f) },
@@ -46,7 +54,10 @@ namespace CatHealingHouse.View.Art
                 case CatPart.EarL:
                 case CatPart.EarR:
                 case CatPart.EyesOpen:
-                case CatPart.EyesClosed: return CatPart.Head;
+                case CatPart.EyesClosed:
+                case CatPart.EyesHalf:
+                case CatPart.EyesHappy:
+                case CatPart.Blush: return CatPart.Head;
                 default: return null;
             }
         }
@@ -71,7 +82,34 @@ namespace CatHealingHouse.View.Art
         private static readonly Shape EarRShape = Triangle(new Vector2(0.675f, 0.68f), new Vector2(0.78f, 0.80f), new Vector2(0.81f, 0.61f), 0.022f);
         private static Shape Leg(float x) => Capsule(x, 0.215f, x, 0.13f, 0.048f);
 
-        public static Sprite Get(CatLook look, CatPart part)
+        /// <summary>
+        /// 쓰다듬는 부위 (옆모습, 오른쪽을 본 기준). head · body · tail · root 는 각 뼈 기준 캔버스 좌표
+        /// (자세가 바뀌어도 그 부위 그림 위의 자리로 판정하려고). 없으면 None.
+        /// </summary>
+        public static Cats.PetZone ZoneAt(Vector2 head, Vector2 body, Vector2 tail, Vector2 root)
+        {
+            const float pad = 0.02f;
+            if (EarLShape(head.x, head.y) < pad || EarRShape(head.x, head.y) < pad) return Cats.PetZone.Head;
+            if (HeadShape(head.x, head.y) < pad)
+            {
+                if (head.y > 0.555f) return Cats.PetZone.Head;
+                if (head.x > 0.70f && head.y < 0.50f) return Cats.PetZone.Chin;
+                return Cats.PetZone.Cheek;
+            }
+            if (BodyShape(body.x, body.y) < pad)
+            {
+                if (body.y > 0.33f) return Cats.PetZone.Back;
+                if (body.x > 0.58f && body.y > 0.2f) return Cats.PetZone.Chest;
+                if (body.y < 0.225f) return Cats.PetZone.Belly;
+                return Cats.PetZone.Back;
+            }
+            if (TailShape(tail.x, tail.y) < pad) return Cats.PetZone.Tail;
+            if (root.y < 0.24f && root.y > 0.08f && root.x > 0.2f && root.x < 0.62f) return Cats.PetZone.Paw;
+            return Cats.PetZone.None;
+        }
+
+        
+public static Sprite Get(CatLook look, CatPart part)
         {
             // 아트 라이브러리에 진짜 그림이 있으면 그걸 쓴다
             var lib = ArtLibrary.Active != null ? ArtLibrary.Active.CatPartSprite(look.SkinId, part) : null;
@@ -86,7 +124,7 @@ namespace CatHealingHouse.View.Art
 
         private static Sprite Draw(CatLook look, CatPart part)
         {
-            var c = new SdfCanvas(256);
+            var c = new SdfCanvas(Res);
             bool dark = look.Base.grayscale < 0.35f;
             float w = 0.018f;
             switch (part)
@@ -152,6 +190,28 @@ namespace CatHealingHouse.View.Art
                     c.Fill(Circle(0.722f, 0.548f, 0.0085f), Color.white);
                     break;
                 }
+
+                case CatPart.EyesHalf:
+                {
+                    // 지그시 감은 눈 (‿): 기분 좋을 때
+                    var col = dark ? Col("#F2E6D6") : Eye;
+                    foreach (var ex in new[] { 0.605f, 0.715f })
+                        c.Fill(Union(Capsule(ex - 0.022f, 0.541f, ex, 0.527f, 0.0072f), Capsule(ex, 0.527f, ex + 0.022f, 0.541f, 0.0072f)), col);
+                    break;
+                }
+
+                case CatPart.EyesHappy:
+                {
+                    var col = dark ? Col("#F2E6D6") : Eye;
+                    foreach (var ex in new[] { 0.605f, 0.715f })
+                        c.Fill(Union(Capsule(ex - 0.021f, 0.526f, ex, 0.546f, 0.0068f), Capsule(ex, 0.546f, ex + 0.021f, 0.526f, 0.0068f)), col);
+                    break;
+                }
+
+                case CatPart.Blush:
+                    c.Fill(Ellipse(0.572f, 0.478f, 0.042f, 0.026f), A(Col("#F48A93"), 0.7f));
+                    c.Fill(Ellipse(0.758f, 0.478f, 0.042f, 0.026f), A(Col("#F48A93"), 0.7f));
+                    break;
 
                 case CatPart.EyesClosed:
                     c.Fill(Union(Capsule(0.585f, 0.535f, 0.605f, 0.522f, 0.007f), Capsule(0.605f, 0.522f, 0.625f, 0.535f, 0.007f),

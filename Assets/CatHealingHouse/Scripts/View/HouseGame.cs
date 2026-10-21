@@ -103,8 +103,9 @@ namespace CatHealingHouse.View
         private float _lastZoomPresence;
         // 가까이 보기 (쓰다듬기)
         public Petting Petting { get; private set; }
-        private CloseUpView _closeUp;
-        private bool _closeUpLatch;
+        private PetTouch _pet;
+        private CatView _petCandidate;
+        private bool _petting;
         private readonly System.Random _uiRng = new System.Random();
 
         private int ResidentCount => Sim == null ? 0 : Sim.Cats.Count(c => c.Affiliation == Affiliation.Resident);
@@ -254,82 +255,13 @@ namespace CatHealingHouse.View
 
         // ───────────────────────── 가까이 보기 (쓰다듬기) ─────────────────────────
 
-        private CatView NearestCatForCloseUp()
-        {
-            var c = _cam.transform.position;
-            float best = (float)_layout.Size * 2.5f;
-            CatView pick = null;
-            foreach (var v in _catViews)
-            {
-                if (v == null || v.Cat.Affiliation != Affiliation.Resident || v.Cat.Cell.Board != CurrentBoard) continue;
-                float d = Vector2.Distance(v.BodyCenter, c);
-                if (d < best) { best = d; pick = v; }
-            }
-            return pick;
-        }
 
-        private void StartCloseUp(CatView cv)
-        {
-            var cat = cv.Cat;
-            if (cat.State == CatState.Using && cat.TargetNeed == NeedType.Bladder)
-            {
-                Say($"{cat.Name}가 화장실을 쓰는 중이에요. 조금 이따가!");
-                return;
-            }
-            if (_menuCat != null) CloseMenu();
-            _closeUp.Enter(cv);
-        }
 
-        private void OnCloseUpFinished(PetSession s)
-        {
-            _closeUpLatch = true;
-            _saveSoon = true;
-            _viewsDirty = true;
-            if (s == null) return;
-            string n = s.Cat.Name;
-            switch (s.End)
-            {
-                case PetEnd.Satisfied:
-                    Say($"{n}: {CloseUpView.RewardText(s)}{(s.HeartOnCooldown ? " (젤리 하트는 조금 있다가)" : "")}");
-                    break;
-                case PetEnd.Annoyed:
-                    Say(s.IsStray ? $"{n}가 짜증내며 도망갔어요. (호감 -{-s.AffectionGiven:0})" : $"{n}가 삐졌어요. (기분 {s.MoodGiven:+0;-0})");
-                    break;
-                default:
-                    if (s.MoodGiven > 0.5) Say($"{n} 기분 +{s.MoodGiven:0}");
-                    break;
-            }
-        }
 
-        private void DrawCloseUpUi(float h)
-        {
-            var s = _closeUp.Session;
-            var r = new Rect(8, h - 146, UiWidth - 16, 138);
-            GUI.Box(r, GUIContent.none, _popupStyle);
-            string sub = s.IsStray ? "길냥이" : s.Cat.Personality.DisplayName;
-            GUI.Label(new Rect(r.x + 18, r.y + 10, r.width - 150, 32), $"<size=22>{s.Cat.Name}</size>  <size=14><color=#8E6A4B>{sub}</color></size>", _menuTitle);
 
-            // 만족 게이지 (하트)
-            CuteArt.DrawIcon(new Rect(r.x + 14, r.y + 44, 30, 30), ItemKind.Heart);
-            var bar = new Rect(r.x + 50, r.y + 50, r.width - 190, 18);
-            GUI.DrawTexture(bar, Solid(SdfCanvas.Col("#EADBC8")));
-            GUI.DrawTexture(new Rect(bar.x, bar.y, bar.width * Mathf.Clamp01((float)s.Satisfaction), bar.height), Solid(SdfCanvas.Col("#F08A8A")));
-            if (s.Annoyance > 0.02)
-            {
-                var ab = new Rect(bar.x, bar.yMax + 4, bar.width, 6);
-                GUI.DrawTexture(ab, Solid(SdfCanvas.Col("#EADBC8")));
-                GUI.DrawTexture(new Rect(ab.x, ab.y, ab.width * Mathf.Clamp01((float)s.Annoyance), ab.height), Solid(SdfCanvas.Col("#E0574F")));
-            }
 
-            string fb = _closeUp.Feedback != null && Time.time - _closeUp.FeedbackAt < 2.5f ? _closeUp.Feedback
-                : s.Satisfaction < 0.05 ? "손가락으로 쓰다듬어 주세요. 좋아하는 곳을 찾아봐요!" : "";
-            GUI.Label(new Rect(r.x + 18, r.y + 80, r.width - 150, 26), fb, _menuTitle);
-            double wait = Petting.HeartWait(s.Cat);
-            string hint = s.IsStray ? "다 채우면 호감도와 젤리 하트" : "다 채우면 젤리 하트 +1";
-            if (wait > 0) hint = $"젤리 하트는 {Mathf.CeilToInt((float)(wait / 60.0))}분 뒤에 다시 받을 수 있어요";
-            GUI.Label(new Rect(r.x + 18, r.y + 106, r.width - 150, 24), $"<size=13><color=#8E6A4B>{hint}</color></size>", _menuTitle);
-            if (GUI.Button(new Rect(r.xMax - 124, r.y + 38, 108, 60), "나가기", _btn)) { SoundKit.Play("click"); _closeUp.RequestExit(); }
-        }
+
+
 
 
         private CatView ViewOf(Cat cat) => _catViews.FirstOrDefault(v => v != null && v.Cat == cat);
@@ -398,13 +330,13 @@ namespace CatHealingHouse.View
             Skills = new ButlerSkills(Economy, Strays);
             Petting = new Petting(Sim, Economy.Wallet, Strays);
             Petting.SkillLevel = () => Skills.Level(ButlerSkills.GentleHands);
-            _closeUp = gameObject.AddComponent<CloseUpView>();
-            _closeUp.Cam = _cam;
-            _closeUp.Petting = Petting;
-            _closeUp.Material = _material;
-            _closeUp.FitOrtho = () => _fitOrthoSize;
-            _closeUp.OverUi = OverUi;
-            _closeUp.Finished += OnCloseUpFinished;
+            _pet = gameObject.AddComponent<PetTouch>();
+            _pet.Cam = _cam;
+            _pet.Petting = Petting;
+            _pet.Strays = Strays;
+            _pet.Material = _material;
+            _pet.CellSize = (float)_layout.Size;
+            _pet.Say = m => { Say(m); _saveSoon = true; };
             Sim.CatAdded += OnCatAdded;
             Sim.CatRemoved += OnCatRemoved;
             Strays.Arrived += (c, p) => { if (CurrentBoard == BoardId.Indoor) Say($"마당에 누가 왔어요! 살짝 나가 볼까요?"); };
@@ -530,7 +462,6 @@ namespace CatHealingHouse.View
             view.Strays = Strays;
             view.Init(cat, Sim, _layout, _material, _font, look);
             _catViews.Add(view);
-            if (_closeUp != null) _closeUp.WarmLater(look);
             return view;
         }
 
@@ -579,12 +510,7 @@ namespace CatHealingHouse.View
                     break;
                 case InteractOutcome.Adopting: Say($"{n}가 졸졸 따라 들어와요!"); SoundKit.Play("meow"); break;
                 case InteractOutcome.Accepted:
-                    if (a == StrayAction.Pet)
-                    {
-                        // 쓰다듬기를 받아주면 가까이 보기로
-                        var pv = ViewOf(cat);
-                        if (pv != null) { StartCloseUp(pv); break; }
-                    }
+                    // 메뉴 쓰다듬기는 한 번 토닥 (크게 확대해서 직접 문지르면 더 오래 쓰다듬을 수 있다)
                     SoundKit.Play(a == StrayAction.Pet ? "purr" : "heart");
                     { var sv = ViewOf(cat); if (sv != null && a != StrayAction.Pet) sv.Say(a == StrayAction.Snack ? "맛있다!" : "재밌어!"); }
                     string gain = r.AffectionDelta > 0 ? $" 호감 +{r.AffectionDelta:0}" : " (오늘은 충분히 쓰다듬었어요)";
@@ -736,13 +662,11 @@ namespace CatHealingHouse.View
             int food = FoodSignature();
             if (food != _foodSignature) { _foodSignature = food; _viewsDirty = true; }
             if (_viewsDirty) RefreshViews();
+            CatView.ZoomK = _fitOrthoSize > 0 ? Mathf.Clamp(_cam.orthographicSize / _fitOrthoSize, 0.13f, 1f) : 1f;
             foreach (var v in _catViews.ToArray()) if (v != null) v.Sync(CurrentBoard);
 
-            if (_closeUp == null || !_closeUp.Active)
-            {
-                HandleZoom();
-                HandlePointer();
-            }
+            HandleZoom();
+            HandlePointer();
         }
 
         private void Say(string msg)
@@ -803,7 +727,7 @@ namespace CatHealingHouse.View
 
             if (!Mathf.Approximately(factor, 1f))
             {
-                _cam.orthographicSize = Mathf.Clamp(_cam.orthographicSize * factor, _fitOrthoSize * 0.35f, _fitOrthoSize * 1.25f);
+                _cam.orthographicSize = Mathf.Clamp(_cam.orthographicSize * factor, _fitOrthoSize * 0.07f, _fitOrthoSize * 1.25f);
                 // 기획서: 확대는 가까이 다가가는 것. 많이 확대하면 화면 가운데에 기척이 생긴다.
                 if (factor < 1f && CurrentBoard == BoardId.Outdoor && _cam.orthographicSize < _fitOrthoSize * 0.6f && Time.time - _lastZoomPresence > 1.2f)
                 {
@@ -812,18 +736,7 @@ namespace CatHealingHouse.View
                     int n = Strays.Presence(new Cell(BoardId.Outdoor, _layout.FromWorld(c.x, c.y)));
                     if (n > 0) Say("너무 가까이 다가갔어요!");
                 }
-                // 집 고양이: 아주 크게 확대하면 가운데 고양이에게 다가가 가까이 보기 (쓰다듬기)
-                if (_cam.orthographicSize > _fitOrthoSize * 0.5f) _closeUpLatch = false;
-                if (factor < 1f && !_closeUpLatch && _cam.orthographicSize <= _fitOrthoSize * 0.4f)
-                {
-                    var pick = NearestCatForCloseUp();
-                    if (pick != null)
-                    {
-                        _closeUpLatch = true;
-                        _lastPinchDistance = -1f;
-                        StartCloseUp(pick);
-                    }
-                }
+                // 많이 확대하면 고양이를 손가락으로 문질러 쓰다듬을 수 있다 (HandlePointer)
             }
         }
 
@@ -841,11 +754,24 @@ namespace CatHealingHouse.View
                 _dragging = false;
                 _pressPos = pos;
                 _lastPointerPos = pos;
+                // 많이 확대한 상태에서 고양이 위를 누르면 쓰다듬기 후보 (끌면 쓰다듬기, 탭이면 평소처럼)
+                _petting = false;
+                _petCandidate = _cam.orthographicSize <= _fitOrthoSize * PetZoom ? CatUnder(pos) : null;
+                if (_petCandidate != null && !_pet.CanPet(_petCandidate)) _petCandidate = null;
             }
             else if (_pressing && pointer.press.isPressed)
             {
-                if (!_dragging && Vector2.Distance(pos, _pressPos) > DragThresholdPx) _dragging = true;
-                if (_dragging && _lastPinchDistance < 0f)
+                if (!_dragging && Vector2.Distance(pos, _pressPos) > DragThresholdPx)
+                {
+                    _dragging = true;
+                    if (_petCandidate != null && _lastPinchDistance < 0f) _petting = _pet.Begin(_petCandidate);
+                    if (!_petting && _petCandidate != null) { _petCandidate = null; _pressing = false; return; } // 거절당하면 이번 터치는 끝
+                }
+                if (_petting)
+                {
+                    if (_lastPinchDistance < 0f) _pet.Stroke(_lastPointerPos, pos);
+                }
+                else if (_dragging && _lastPinchDistance < 0f)
                 {
                     var a = _cam.ScreenToWorldPoint(new Vector3(_lastPointerPos.x, _lastPointerPos.y, 10));
                     var b = _cam.ScreenToWorldPoint(new Vector3(pos.x, pos.y, 10));
@@ -857,8 +783,31 @@ namespace CatHealingHouse.View
             {
                 _pressing = false;
                 if (!_dragging) OnTap(pos);
+                _petting = false;
+                _petCandidate = null;
             }
         }
+
+        /// <summary>이 배율(화면 맞춤 대비)보다 더 확대하면 고양이를 쓰다듬을 수 있다.</summary>
+        private const float PetZoom = 0.5f;
+
+        /// <summary>손가락 아래 고양이 (그림의 머리·몸·꼬리·다리 위일 때만).</summary>
+        private CatView CatUnder(Vector2 screenPos)
+        {
+            var wp = _cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 10));
+            wp.z = 0;
+            CatView best = null;
+            float bestD = float.MaxValue;
+            foreach (var cv in _catViews)
+            {
+                if (cv == null || cv.Cat.Cell.Board != CurrentBoard) continue;
+                if (PetTouch.ZoneOf(cv, wp) == PetZone.None) continue;
+                float d = Vector2.Distance(wp, cv.BodyCenter);
+                if (d < bestD) { bestD = d; best = cv; }
+            }
+            return best;
+        }
+
 
         // ───────────────────────── 가구 놓기 (미리보기) ─────────────────────────
 
@@ -1227,15 +1176,6 @@ namespace CatHealingHouse.View
 
             _walletInit = true;
 
-            // 가까이 보기 중에는 재화와 쓰다듬기 판만
-            if (_closeUp != null && _closeUp.Active)
-            {
-                if (_closeUp.Session != null) DrawCloseUpUi(h);
-                GUI.enabled = true;
-                if (_away != null) DrawAwayPopup(h);
-                return;
-            }
-
             // ── 시계 알약 (게임 하루 = 현실 24분)
             {
                 var cr = new Rect(8, 56, 204, 40);
@@ -1486,12 +1426,8 @@ namespace CatHealingHouse.View
             }
             var off = new Rect(cx, cy + 28, r.xMax - cx - 14, 52);
             if (GUI.Button(off, "벗기기", cat.Costume != null ? _btn : _btnOff) && cat.Costume != null) { Workshop.TakeOff(cat); SoundKit.Play("click"); }
-            // 쓰다듬기: 가까이 보기로 들어간다
-            if (GUI.Button(new Rect(r.x + 14, r.yMax - 52, r.width - 28, 42), "가까이서 쓰다듬기", _btn) && cv != null)
-            {
-                SoundKit.Play("click");
-                StartCloseUp(cv);
-            }
+            // 쓰다듬기 안내
+            GUI.Label(new Rect(r.x + 14, r.yMax - 50, r.width - 28, 40), "<color=#8E6A4B>크게 확대해서 고양이를 손가락으로 쓰다듬어 보세요</color>", _shopNameCenter);
         }
 
         private void DrawTray(float h)

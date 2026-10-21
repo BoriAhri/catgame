@@ -51,6 +51,12 @@ namespace CatHealingHouse.View
         public StraySystem Strays;
 
         public Cat Cat => _cat;
+        public CatRig Rig => _rig;
+
+        /// <summary>크게 확대해도 이름표·말풍선이 화면을 덮지 않게 줄이는 배율 (HouseGame 이 매 프레임 정한다).</summary>
+        public static float ZoomK = 1f;
+        /// <summary>지금 크기 배율 (가구 안에 들어가면 작아짐). 쓰다듬기 게이지 위치용.</summary>
+        public float LastScale { get; private set; } = 1f;
         public CatLook Look { get; private set; }
         private string _shownCostume;
         private Material _material;
@@ -128,7 +134,7 @@ namespace CatHealingHouse.View
             float bs = size * 0.62f * pop / CuteArt.WidthOf(_bubble.sprite);
             var bt = _bubble.transform;
             bt.localPosition = new Vector3(size * 0.62f, size * 0.62f * scale, 0); // 머리 옆 (이름표와 안 겹치게)
-            bt.localScale = new Vector3(bs, bs, 1);
+            bt.localScale = new Vector3(bs * ZoomK, bs * ZoomK, 1);
 
             bool heart = r == StrayReaction.Love || (ready && r == StrayReaction.None);
             _bubbleIcon.gameObject.SetActive(heart);
@@ -230,7 +236,7 @@ namespace CatHealingHouse.View
             _speechTail.transform.localPosition = new Vector3(-bw * 0.18f, -bh * 0.5f + k * 0.045f, 0);
 
             // 이름표 위에
-            float labelTop = size * 1.05f * scale + (_labelR != null ? _labelR.localBounds.max.y : size * 0.3f);
+            float labelTop = size * 1.05f * scale + (_labelR != null ? _labelR.localBounds.max.y : size * 0.3f) * ZoomK;
             float y = labelTop + size * 0.08f + k * 0.24f + bh * 0.5f + Mathf.Sin(Time.time * 2.3f + _phase) * size * 0.02f;
             _speech.localPosition = new Vector3(0, y, 0);
 
@@ -239,7 +245,7 @@ namespace CatHealingHouse.View
             const float c1 = 1.70158f, c3 = c1 + 1f;
             float pop = 1f + c3 * Mathf.Pow(p - 1f, 3f) + c1 * Mathf.Pow(p - 1f, 2f);
             float a = Mathf.Clamp01((_speechDur - age) / 0.35f);
-            _speech.localScale = new Vector3(pop, pop, 1);
+            _speech.localScale = new Vector3(pop * ZoomK, pop * ZoomK, 1);
             var wc = new Color(1f, 1f, 1f, a);
             _speechBox.color = wc;
             _speechTail.color = wc;
@@ -390,11 +396,13 @@ namespace CatHealingHouse.View
                 _rig.SetCostume(_shownCostume != null ? CraftArt.Costume(_shownCostume) : null, _shownCostume != null ? CraftArt.PartOf(_shownCostume) : CatPart.Body, _shownCostume != null ? CraftArt.OrderOf(_shownCostume) : 0, _material);
             }
             _rig.Animate(pose, (float)_cat.HopProgress, time);
+            LastScale = scale;
 
             // 그리기 순서: 바닥 위치로 정렬, 가구 위에 올라가 있으면 가구보다 앞
             _rig.Group.sortingOrder = BoardView.ObjectOrder(_display.y - slotOffset.y * inside) + 1 + (inside > 0.5f ? 40 : 0);
 
             _label.transform.localPosition = new Vector3(0, size * 1.05f * scale, 0);
+            _label.transform.localScale = new Vector3(ZoomK, ZoomK, 1);
             var profile = Strays != null && _cat.Affiliation == Affiliation.Stray ? Strays.ProfileOf(_cat) : null;
             _label.text = profile != null
                 ? $"{_cat.Name} <size=30>({profile.TemperamentName})</size>\n<size=32>{ActivityText(_cat, f)} · 호감 {profile.Affection:0}</size>"

@@ -4,8 +4,8 @@ using CatHealingHouse.Stray;
 
 namespace CatHealingHouse.Cats
 {
-    /// <summary>가까이 보기에서 쓰다듬는 부위 (정면 상반신 기준).</summary>
-    public enum PetZone { None, Head, Cheek, Chin, Chest, Belly, Paw, Tail, Nose }
+    /// <summary>확대해서 쓰다듬는 부위 (판 위 옆모습 고양이 기준).</summary>
+    public enum PetZone { None, Head, Cheek, Chin, Chest, Belly, Paw, Tail, Nose, Back }
 
     /// <summary>그 부위를 만졌을 때의 기분.</summary>
     public enum PetFeel { Love, Like, Meh, Dislike }
@@ -46,6 +46,7 @@ namespace CatHealingHouse.Cats
                 case PetZone.Head:
                 case PetZone.Cheek: return PetFeel.Love;
                 case PetZone.Chin:
+                case PetZone.Back:
                 case PetZone.Chest: return PetFeel.Like;
                 case PetZone.Nose: return PetFeel.Meh;
                 default: return PetFeel.Dislike; // 배, 앞발, 꼬리
@@ -59,7 +60,7 @@ namespace CatHealingHouse.Cats
             {
                 case "sleepyhead": if (z == PetZone.Belly) return PetFeel.Like; if (z == PetZone.Chin) return PetFeel.Love; break;
                 case "tower_king": if (z == PetZone.Chest) return PetFeel.Meh; break;
-                case "energizer": if (z == PetZone.Paw || z == PetZone.Tail) return PetFeel.Meh; if (z == PetZone.Cheek) return PetFeel.Like; break;
+                case "energizer": if (z == PetZone.Paw || z == PetZone.Tail) return PetFeel.Meh; if (z == PetZone.Cheek) return PetFeel.Like; if (z == PetZone.Back) return PetFeel.Love; break;
                 case "foodie": if (z == PetZone.Chin) return PetFeel.Love; if (z == PetZone.Belly) return PetFeel.Meh; break;
                 case "shy": if (z == PetZone.Head) return PetFeel.Like; if (z == PetZone.Chest) return PetFeel.Meh; break;
                 case "curious": if (z == PetZone.Nose || z == PetZone.Paw) return PetFeel.Like; break;

@@ -8,6 +8,9 @@ namespace CatHealingHouse.View
     /// <summary>고양이 몸짓 종류. CatView 가 고양이 상태에서 골라 넘긴다.</summary>
     public enum CatPose { Idle, Walk, Run, Sleep, Eat, Litter, Groom, Sit, Hide, Lie, SitIdle }
 
+    /// <summary>쓰다듬을 때 눈 (0 평소, 1 반쯤 감음, 2 웃는 눈, 3 감음).</summary>
+    public enum PetEyes { Normal, Half, Happy, Closed }
+
     /// <summary>
     /// 임시 뼈대(컷아웃) 고양이. 부위별 스프라이트를 관절에 매달고 코드로 회전·이동해서 움직인다.
     /// 2D Animation 패키지의 진짜 리깅으로 바꿀 때도 부위 이름과 관절 위치는 그대로 쓴다.
@@ -59,7 +62,25 @@ namespace CatHealingHouse.View
                 _renderers[part] = sr;
             }
             _renderers[CatPart.EyesClosed].enabled = false;
+            _renderers[CatPart.EyesHalf].enabled = false;
+            _renderers[CatPart.EyesHappy].enabled = false;
+            _renderers[CatPart.Blush].color = new Color(1, 1, 1, 0);
         }
+
+        // ── 쓰다듬기 반응 (PetTouch 가 목표를 정하면 부드럽게 따라간다) ──
+        public bool PetActive;
+        public PetEyes PetEyes;
+        public float PetTilt, PetEars, PetPurr, PetBlush, PetTail = 1f;
+        private float _pTilt, _pEars, _pPurr, _pBlush, _pTail = 1f, _pTailT, _pWeight;
+
+        /// <summary>뼈 기준 캔버스 좌표 (쓰다듬는 부위 판정용). 방향 뒤집기는 transform 이 처리한다.</summary>
+        public Vector2 CanvasAt(Vector3 world, CatPart bone)
+        {
+            var t = _bones[bone];
+            return (Vector2)t.InverseTransformPoint(world) + CatParts.Joint[bone];
+        }
+
+        public Vector2 CanvasAtRoot(Vector3 world) => (Vector2)transform.InverseTransformPoint(world) + CatParts.Root;
 
         private SpriteRenderer _costume;
 
@@ -245,8 +266,49 @@ namespace CatHealingHouse.View
                 }
             }
 
-            _renderers[CatPart.EyesOpen].enabled = !eyesClosed;
-            _renderers[CatPart.EyesClosed].enabled = eyesClosed;
+            // 쓰다듬기 반응: 자세 위에 얹는다
+            float dt = Time.deltaTime;
+            _pWeight = Mathf.MoveTowards(_pWeight, PetActive ? 1f : 0f, dt * 4f);
+            float kTilt = 1f - Mathf.Exp(-dt * 10f);
+            _pTilt = Mathf.Lerp(_pTilt, PetActive ? PetTilt : 0f, kTilt);
+            _pEars = Mathf.Lerp(_pEars, PetActive ? PetEars : 0f, 1f - Mathf.Exp(-dt * 14f));
+            _pPurr = Mathf.Lerp(_pPurr, PetActive ? PetPurr : 0f, 1f - Mathf.Exp(-dt * 4f));
+            _pBlush = Mathf.Lerp(_pBlush, PetActive ? PetBlush : 0f, 1f - Mathf.Exp(-dt * 3f));
+            _pTail = Mathf.Lerp(_pTail, PetActive ? PetTail : 1f, 1f - Mathf.Exp(-dt * 3f));
+            int eyes = 0;
+            if (_pWeight > 0.001f)
+            {
+                var head = _bones[CatPart.Head];
+                head.localRotation = head.localRotation * Quaternion.Euler(0, 0, _pTilt);
+                if (_pPurr > 0.03f)
+                {
+                    var j = new Vector3(Mathf.Sin(time * 61f), Mathf.Cos(time * 53f), 0) * 0.0035f * _pPurr;
+                    _bones[CatPart.Body].localPosition += j;
+                    head.localPosition += j;
+                }
+                // 귀를 뒤로 젖힌다 (오른쪽을 본 기준으로 뒤 = 반시계)
+                if (_pEars > 0.01f)
+                {
+                    foreach (var ear in new[] { CatPart.EarL, CatPart.EarR })
+                    {
+                        var e = _bones[ear];
+                        e.localRotation = e.localRotation * Quaternion.Euler(0, 0, 40f * _pEars);
+                        e.localScale = new Vector3(1f, 1f - 0.3f * _pEars, 1f);
+                    }
+                }
+                if (PetActive && Mathf.Abs(_pTail - 1f) > 0.05f)
+                {
+                    _pTailT += dt * _pTail;
+                    float amp = Mathf.Lerp(10f, 26f, Mathf.Clamp01((_pTail - 1f) / 2f));
+                    _bones[CatPart.Tail].localRotation = Quaternion.Euler(0, 0, Mathf.Sin(_pTailT * 2.2f) * amp + 10f);
+                }
+                if (PetActive && PetEyes != PetEyes.Normal) { eyes = (int)PetEyes; eyesClosed = false; }
+            }
+            _renderers[CatPart.Blush].color = new Color(1, 1, 1, Mathf.Clamp01(_pBlush));
+            _renderers[CatPart.EyesOpen].enabled = !eyesClosed && eyes == 0;
+            _renderers[CatPart.EyesClosed].enabled = eyesClosed || eyes == 3;
+            _renderers[CatPart.EyesHalf].enabled = !eyesClosed && eyes == 1;
+            _renderers[CatPart.EyesHappy].enabled = !eyesClosed && eyes == 2;
         }
     }
 }
