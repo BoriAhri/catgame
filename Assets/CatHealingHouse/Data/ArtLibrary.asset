@@ -1,0 +1,241 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01af2535cd75c2a4691f766984c09099, type: 3}
+  m_Name: ArtLibrary
+  m_EditorClassIdentifier: CatHealingHouse.View::CatHealingHouse.View.Art.ArtLibrary
+  furniture:
+  - furnitureId: food_bowl
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: litter_box
+    sprite: {fileID: 0}
+    stages:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - furnitureId: scratcher
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: cushion
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: box_1
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: box_2
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: hiding_house
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: cat_tower_3
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: cat_tower_5
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: bed
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: cat_wheel
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: bookshelf
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: rug_big
+    sprite: {fileID: 0}
+    stages: []
+  - furnitureId: bench
+    sprite: {fileID: 0}
+    stages: []
+  items:
+  - kind: 1
+    sprite: {fileID: 0}
+  - kind: 2
+    sprite: {fileID: 0}
+  - kind: 3
+    sprite: {fileID: 0}
+  - kind: 4
+    sprite: {fileID: 0}
+  - kind: 5
+    sprite: {fileID: 0}
+  - kind: 6
+    sprite: {fileID: 0}
+  - kind: 7
+    sprite: {fileID: 0}
+  - kind: 8
+    sprite: {fileID: 0}
+  - kind: 9
+    sprite: {fileID: 0}
+  - kind: 10
+    sprite: {fileID: 0}
+  - kind: 11
+    sprite: {fileID: 0}
+  - kind: 12
+    sprite: {fileID: 0}
+  - kind: 13
+    sprite: {fileID: 0}
+  catSkins:
+  - skinId: cheese
+    parts:
+    - part: 0
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 1
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 2
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 3
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 4
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 5
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 6
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 7
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 8
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 9
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 10
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 11
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+  - skinId: kkamang
+    parts:
+    - part: 0
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 1
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 2
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 3
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 4
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 5
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 6
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 7
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 8
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 9
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 10
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 11
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+  - skinId: godeungeo
+    parts:
+    - part: 0
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 1
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 2
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 3
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 4
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 5
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 6
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 7
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 8
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 9
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 10
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 11
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+  - skinId: samsaek
+    parts:
+    - part: 0
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 1
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 2
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 3
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 4
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 5
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 6
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 7
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 8
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 9
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 10
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
+    - part: 11
+      sprite: {fileID: 0}
+      joint: {x: 0, y: 0}
