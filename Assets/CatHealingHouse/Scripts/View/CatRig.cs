@@ -406,8 +406,9 @@ namespace CatHealingHouse.View
                         Pos(leg, new Vector3(-0.06f, -0.085f, 0));
                         Scale(leg, 1f, 1.2f);
                     }
-                    Pos(CatPart.Head, new Vector3(0.08f, -0.17f, 0));
-                    Rot(CatPart.Head, -14f + Mathf.Sin(t * 0.4f) * 2f);
+                    // 눌린 몸의 목 자리를 따라간다 (몸은 x 1.16배로 늘고 y 0.66배로 눌리고 0.07 내려감 → 목 자리 (+0.022, -0.158))
+                    Pos(CatPart.Head, new Vector3(0.025f, -0.152f, 0));
+                    Rot(CatPart.Head, -10f + Mathf.Sin(t * 0.4f) * 2f);
                     Pos(CatPart.Tail, new Vector3(0f, -0.1f, 0));
                     Rot(CatPart.Tail, 48f + Mathf.Sin(t * 0.7f) * 5f);
                     tipCurl = 8f;
