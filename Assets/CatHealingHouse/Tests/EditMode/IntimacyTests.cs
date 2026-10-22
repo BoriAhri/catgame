@@ -104,6 +104,21 @@ namespace CatHealingHouse.Tests
         }
 
         [Test]
+        public void SnackKinds_CostMoreGiveMore_AndShareDailyCount()
+        {
+            var c = NewCat();
+            Assert.AreEqual(SnackResult.Ok, _int.FeedSnack(c, Snacks.Salmon, 9, out var e1));
+            Assert.AreEqual(Snacks.Salmon.Exp, e1);
+            Assert.AreEqual(10000 - Snacks.Salmon.Cost, _wallet.Money);
+            Assert.Greater(Snacks.Salmon.Exp, Snacks.Tuna.Exp);
+            Assert.Greater(Snacks.Tuna.Exp, Snacks.Churu.Exp);
+            _int.FeedSnack(c, Snacks.Tuna, 9, out _);
+            _int.FeedSnack(c, Snacks.Churu, 9, out _);
+            // 종류가 달라도 하루 횟수는 같이 센다
+            Assert.AreEqual(Snacks.Tuna.Exp * 0.5, _int.NextSnackExp(c, Snacks.Tuna, 9), 1e-9);
+        }
+
+        [Test]
         public void StraysCannotEatProfileSnack()
         {
             var s = _sim.AddStray("길", new Cell(BoardId.Outdoor, HexCoord.Zero), 1);
@@ -120,7 +135,7 @@ namespace CatHealingHouse.Tests
             for (int i = 0; i < 200 && !s.Done; i++) pet.Stroke(s, PetZone.Head, 0.1);
             Assert.AreEqual(PetEnd.Satisfied, s.End);
             Assert.AreEqual(_int.Tuning.PetExp, s.ExpGiven);
-            Assert.Less(s.ExpGiven, _int.Tuning.SnackExp, "쓰다듬기는 간식보다 조금");
+            Assert.Less(s.ExpGiven, Snacks.Churu.Exp, "쓰다듬기는 간식보다 조금");
             Assert.AreEqual(_int.Tuning.PetExp, c.IntimacyExp, 1e-9);
         }
 

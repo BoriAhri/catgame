@@ -1123,6 +1123,9 @@ namespace CatHealingHouse.View
         private float _profileOpenedAt;
         private Rect _profileRectGui;
         private const float ProfileH = 432f;
+        private enum ProfileMenu { None, Snack, Costume }
+        private ProfileMenu _profileMenu;
+        private Cat _profileMenuCat;
 
         private void EnsureStyles()
         {
@@ -1421,9 +1424,8 @@ namespace CatHealingHouse.View
             var f = cat.HasTarget ? World.GetFurniture(cat.TargetFurnitureId) : null;
             float tx = pc.xMax + 14, tw = r.xMax - tx - 60;
             GUI.Label(new Rect(tx, r.y + 14, tw + 50, 34), $"<size=24>{cat.Name}</size>   <size=18><color=#E08A3C>친밀도 Lv.{cat.IntimacyLevel}</color></size>", _menuTitle);
-            GUI.Label(new Rect(tx, r.y + 48, tw + 50, 24), $"<color=#C0603F>{cat.Personality.DisplayName}</color>  {CatView.ActivityText(cat, f)}", _menuTitle);
             if (!string.IsNullOrEmpty(cat.Personality.Description))
-                GUI.Label(new Rect(tx, r.y + 74, r.xMax - tx - 14, 40), cat.Personality.Description, _shopSmall);
+                GUI.Label(new Rect(tx, r.y + 52, r.xMax - tx - 14, 50), cat.Personality.Description, _shopSmall);
             // 기분
             GUI.Label(new Rect(tx, r.y + 110, 50, 24), "기분", _menuTitle);
             var mbar = new Rect(tx + 48, r.y + 118, r.xMax - tx - 80, 12);
@@ -1442,54 +1444,78 @@ namespace CatHealingHouse.View
                 i++;
             }
 
-            // 친밀도: 경험치 바 + 간식 주기
+            // 친밀도: 경험치 바 + 츄르 버튼(간식 종류) + 옷 버튼(옷 종류)
+            if (_profileMenuCat != cat) { _profileMenuCat = cat; _profileMenu = ProfileMenu.None; }
             float iy = r.y + 236;
             bool maxLv = Intimacy.IsMax(cat);
             string sp = cat.SkillPoints > 0 ? $"   <size=14><color=#5E9C4C>스킬 포인트 {cat.SkillPoints}</color></size>" : "";
-            GUI.Label(new Rect(r.x + 14, iy, r.width - 200, 26), maxLv
+            GUI.Label(new Rect(r.x + 14, iy, r.width - 170, 26), maxLv
                 ? $"친밀도 Lv.{cat.IntimacyLevel} <size=14>(최대)</size>{sp}"
                 : $"친밀도 Lv.{cat.IntimacyLevel}  <size=14><color=#A08876>{System.Math.Floor(cat.IntimacyExp):0} / {Intimacy.Need(cat.IntimacyLevel)}</color></size>{sp}", _menuTitle);
-            var ebar = new Rect(r.x + 14, iy + 32, r.width - 28 - 180, 14);
+            var ebar = new Rect(r.x + 14, iy + 34, r.width - 28 - 160, 14);
             GUI.DrawTexture(ebar, Solid(SdfCanvas.Col("#EADBC6")));
             GUI.DrawTexture(new Rect(ebar.x, ebar.y, ebar.width * (float)Intimacy.Progress(cat), ebar.height), Solid(SdfCanvas.Col("#F2B05E")));
-            var snackBtn = new Rect(r.xMax - 14 - 168, iy + 2, 168, 52);
-            int today = TodayIndex();
-            bool canPay = Economy.Wallet.Money >= Intimacy.Tuning.SnackCost;
-            double nextExp = maxLv ? 0 : Intimacy.NextSnackExp(cat, today);
-            if (GUI.Button(snackBtn, $"간식 주기\n<size=13>{Intimacy.Tuning.SnackCost}원 · 친밀도 +{nextExp:0.#}</size>", canPay ? _btn : _btnOff))
-            {
-                var res = Intimacy.FeedSnack(cat, today, out var gotExp);
-                if (res == SnackResult.Ok)
-                {
-                    Say(maxLv ? $"{cat.Name}가 간식을 냠냠!" : $"{cat.Name}가 간식을 냠냠! 친밀도 +{gotExp:0.#}");
-                    if (cv != null) cv.Say("맛있다!");
-                    SoundKit.Play("heart");
-                    _saveSoon = true;
-                }
-                else { Say($"돈이 모자라요 (간식 {Intimacy.Tuning.SnackCost}원)"); SoundKit.Play("click"); }
-            }
+            var snackBtn = new Rect(r.xMax - 14 - 140, iy, 66, 56);
+            var clothesBtn = new Rect(r.xMax - 14 - 66, iy, 66, 56);
+            if (GUI.Button(snackBtn, GUIContent.none, _profileMenu == ProfileMenu.Snack ? _btnOn : _btn))
+            { _profileMenu = _profileMenu == ProfileMenu.Snack ? ProfileMenu.None : ProfileMenu.Snack; SoundKit.Play("click"); }
+            CuteArt.DrawSprite(new Rect(snackBtn.x + 11, snackBtn.y + 6, 44, 44), UiKit.Icon("churu"));
+            if (GUI.Button(clothesBtn, GUIContent.none, _profileMenu == ProfileMenu.Costume ? _btnOn : _btn))
+            { _profileMenu = _profileMenu == ProfileMenu.Costume ? ProfileMenu.None : ProfileMenu.Costume; SoundKit.Play("click"); }
+            CuteArt.DrawSprite(new Rect(clothesBtn.x + 11, clothesBtn.y + 6, 44, 44), UiKit.Icon("clothes"));
 
-            // 옷 입히기
-            float cy = r.y + 296;
-            GUI.Label(new Rect(r.x + 14, cy, 200, 24), "옷 입히기", _menuTitle);
-            float cx = r.x + 14;
-            foreach (var id in Costumes.All)
+            // 고른 버튼의 종류 목록
+            float cy = r.y + 304;
+            float cardW = (r.width - 28 - 3 * 8) / 4f;
+            if (_profileMenu == ProfileMenu.Snack)
             {
-                var b = new Rect(cx, cy + 28, 110, 52);
-                bool wearing = cat.Costume == id;
-                int n = Workshop.Closet(id);
-                GUI.Label(b, "", wearing ? _btnOn : n > 0 ? _btn : _btnOff);
-                CuteArt.DrawSprite(new Rect(b.x + 8, b.y + 8, 34, 34), CraftArt.CostumeIcon(id));
-                GUI.Label(new Rect(b.x + 44, b.y, 64, 52), wearing ? "입음" : $"{Costumes.NameOf(id)}\n<size=12>x{n}</size>", _shopNameCenter);
-                if (GUI.Button(b, GUIContent.none, GUIStyle.none) && !wearing)
+                int today = TodayIndex();
+                float cx = r.x + 14;
+                foreach (var snack in Snacks.All)
                 {
-                    if (Workshop.Wear(cat, id)) { Say($"{cat.Name}에게 {Costumes.NameOf(id)}을(를) 입혔어요!"); SoundKit.Play("heart"); }
-                    else { Say($"옷장에 {Costumes.NameOf(id)}이(가) 없어요. 공방에서 만들어 보세요."); SoundKit.Play("click"); }
+                    var card = new Rect(cx, cy, cardW + 20, 72);
+                    bool canPay = Economy.Wallet.Money >= snack.Cost;
+                    GUI.Label(card, "", canPay ? _btn : _btnOff);
+                    CuteArt.DrawSprite(new Rect(card.x + 6, card.y + 14, 44, 44), UiKit.Icon("snack_" + snack.Id));
+                    double next = maxLv ? 0 : Intimacy.NextSnackExp(cat, snack, today);
+                    string expText = maxLv ? "" : $" · +{next:0.#}";
+                    GUI.Label(new Rect(card.x + 50, card.y, card.width - 52, card.height), $"{snack.Name}\n<size=12>{snack.Cost}원{expText}</size>", _shopNameCenter);
+                    if (GUI.Button(card, GUIContent.none, GUIStyle.none))
+                    {
+                        var res = Intimacy.FeedSnack(cat, snack, today, out var gotExp);
+                        if (res == SnackResult.Ok)
+                        {
+                            Say(maxLv ? $"{cat.Name}가 {snack.Name}를 냠냠!" : $"{cat.Name}가 {snack.Name}를 냠냠! 친밀도 +{gotExp:0.#}");
+                            if (cv != null) cv.Say("맛있다!");
+                            SoundKit.Play("heart");
+                            _saveSoon = true;
+                        }
+                        else { Say($"돈이 모자라요 ({snack.Name} {snack.Cost}원)"); SoundKit.Play("click"); }
+                    }
+                    cx += card.width + 8;
                 }
-                cx += 118;
             }
-            var off = new Rect(cx, cy + 28, r.xMax - cx - 14, 52);
-            if (GUI.Button(off, "벗기기", cat.Costume != null ? _btn : _btnOff) && cat.Costume != null) { Workshop.TakeOff(cat); SoundKit.Play("click"); }
+            else if (_profileMenu == ProfileMenu.Costume)
+            {
+                float cx = r.x + 14;
+                foreach (var id in Costumes.All)
+                {
+                    var card = new Rect(cx, cy, cardW + 20, 72);
+                    bool wearing = cat.Costume == id;
+                    int n = Workshop.Closet(id);
+                    GUI.Label(card, "", wearing ? _btnOn : n > 0 ? _btn : _btnOff);
+                    CuteArt.DrawSprite(new Rect(card.x + 6, card.y + 14, 44, 44), CraftArt.CostumeIcon(id));
+                    GUI.Label(new Rect(card.x + 50, card.y, card.width - 52, card.height), wearing ? $"{Costumes.NameOf(id)}\n<size=12>입음 · 눌러서 벗기</size>" : $"{Costumes.NameOf(id)}\n<size=12>x{n}</size>", _shopNameCenter);
+                    if (GUI.Button(card, GUIContent.none, GUIStyle.none))
+                    {
+                        // 입고 있는 옷을 다시 누르면 벗긴다
+                        if (wearing) { Workshop.TakeOff(cat); Say($"{cat.Name}의 {Costumes.NameOf(id)}을(를) 벗겼어요."); SoundKit.Play("click"); }
+                        else if (Workshop.Wear(cat, id)) { Say($"{cat.Name}에게 {Costumes.NameOf(id)}을(를) 입혔어요!"); SoundKit.Play("heart"); }
+                        else { Say($"옷장에 {Costumes.NameOf(id)}이(가) 없어요. 공방에서 만들어 보세요."); SoundKit.Play("click"); }
+                    }
+                    cx += card.width + 8;
+                }
+            }
             // 쓰다듬기 안내
             GUI.Label(new Rect(r.x + 14, r.yMax - 50, r.width - 28, 40), "<color=#8E6A4B>끝까지 확대해서 고양이를 손가락으로 쓰다듬어 보세요</color>", _shopNameCenter);
         }

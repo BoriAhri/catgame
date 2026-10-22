@@ -182,6 +182,37 @@ namespace CatHealingHouse.View
                     c.Fill(Polygon(new[] { new Vector2(0.43f, 0.82f), new Vector2(0.83f, 0.9f), new Vector2(0.83f, 0.78f), new Vector2(0.43f, 0.7f) }, 0.01f), Line);
                     if (id == "note_off") c.Fill(Capsule(0.18f, 0.16f, 0.84f, 0.86f, 0.045f), Col("#D2694A"), Line, w * 0.6f);
                     break;
+                case "churu":
+                    // 츄르: 비스듬한 짜먹는 스틱, 위는 뜯은 끝, 짜낸 한 방울
+                    c.Fill(Capsule(0.28f, 0.18f, 0.70f, 0.76f, 0.115f), Col("#FFF4E6"), Line, w);
+                    c.Fill(Intersect(Capsule(0.28f, 0.18f, 0.70f, 0.76f, 0.115f), Capsule(0.30f, 0.62f, 0.66f, 0.36f, 0.075f)), Col("#F49A8F"));
+                    c.Fill(Intersect(Capsule(0.28f, 0.18f, 0.70f, 0.76f, 0.115f), Heart(0.48f, 0.47f, 0.05f)), Col("#FFF4E6"));
+                    c.Fill(Capsule(0.68f, 0.73f, 0.76f, 0.84f, 0.06f), Col("#F3CF6B"), Line, w * 0.8f);
+                    c.Fill(Circle(0.84f, 0.9f, 0.05f), Col("#E9A24C"), Line, w * 0.6f);
+                    break;
+                case "clothes":
+                    // 옷: 소매 달린 작은 티셔츠 + 리본
+                    c.Fill(Union(RoundBox(0.5f, 0.42f, 0.2f, 0.26f, 0.05f), Capsule(0.38f, 0.64f, 0.17f, 0.5f, 0.085f), Capsule(0.62f, 0.64f, 0.83f, 0.5f, 0.085f)), Col("#9CC9EE"), Line, w);
+                    c.Fill(Ellipse(0.5f, 0.69f, 0.09f, 0.05f), Col("#6FA6D6"), Line, w * 0.6f);
+                    c.Fill(Union(Triangle(new Vector2(0.5f, 0.48f), new Vector2(0.38f, 0.55f), new Vector2(0.38f, 0.41f), 0.015f), Triangle(new Vector2(0.5f, 0.48f), new Vector2(0.62f, 0.55f), new Vector2(0.62f, 0.41f), 0.015f)), Col("#F48A93"), Line, w * 0.6f);
+                    c.Fill(Circle(0.5f, 0.48f, 0.035f), Col("#E56F7B"));
+                    break;
+                case "snack_churu":
+                    c.Fill(Capsule(0.28f, 0.18f, 0.70f, 0.76f, 0.115f), Col("#FFF4E6"), Line, w);
+                    c.Fill(Intersect(Capsule(0.28f, 0.18f, 0.70f, 0.76f, 0.115f), Capsule(0.30f, 0.62f, 0.66f, 0.36f, 0.075f)), Col("#F49A8F"));
+                    c.Fill(Capsule(0.68f, 0.73f, 0.76f, 0.84f, 0.06f), Col("#F3CF6B"), Line, w * 0.8f);
+                    break;
+                case "snack_tuna":
+                    // 참치 큐브: 분홍 네모, 결 무늬
+                    c.Fill(RoundBox(0.5f, 0.44f, 0.27f, 0.24f, 0.07f), Col("#F29A8F"), Line, w);
+                    c.Fill(Intersect(RoundBox(0.5f, 0.44f, 0.27f, 0.24f, 0.07f), Union(Capsule(0.3f, 0.55f, 0.7f, 0.6f, 0.02f), Capsule(0.3f, 0.38f, 0.7f, 0.43f, 0.02f))), Col("#FBC5BC"));
+                    c.Fill(Ellipse(0.42f, 0.62f, 0.08f, 0.03f), new Color(1f, 1f, 1f, 0.6f));
+                    break;
+                case "snack_salmon":
+                    // 연어 육포: 주황 띠, 흰 지방 줄
+                    c.Fill(Capsule(0.2f, 0.32f, 0.8f, 0.66f, 0.12f), Col("#EE8B5B"), Line, w);
+                    c.Fill(Intersect(Capsule(0.2f, 0.32f, 0.8f, 0.66f, 0.12f), Union(Capsule(0.33f, 0.52f, 0.43f, 0.32f, 0.018f), Capsule(0.5f, 0.62f, 0.6f, 0.42f, 0.018f), Capsule(0.66f, 0.72f, 0.76f, 0.52f, 0.018f))), Col("#FFE3D2"));
+                    break;
                 case "sparkle":
                     c.Fill(Star(0.5f, 0.5f, 0.34f, 4, 0.35f, 0.02f), Col("#FFD36B"), Line, w * 0.8f);
                     c.Fill(Star(0.78f, 0.78f, 0.12f, 4, 0.4f, 0.01f), Col("#FFE9A6"));

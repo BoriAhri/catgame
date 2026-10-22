@@ -11,18 +11,33 @@ namespace CatHealingHouse.Cats
     {
         public int MaxLevel = 99;
 
-        // 간식: 코인으로 사서 준다. 고양이마다 하루 첫 몇 번만 경험치를 다 받고 그다음부터는 점점 준다 (연타 방지).
-        public long SnackCost = 50;
-        public double SnackExp = 10;
+        // 간식: 코인으로 사서 준다. 고양이마다 하루 첫 몇 번만 경험치를 다 받고 그다음부터는 반씩 준다 (연타 방지).
+        // 종류(츄르·참치 큐브·연어 육포)와 상관없이 하루 횟수를 같이 센다.
         public int SnackFullPerDay = 3;
-        public double SnackMinExp = 1;
-        public double SnackHunger = 15, SnackMood = 5;
+        public double SnackMinShare = 0.1;   // 아무리 많이 줘도 원래 경험치의 이만큼은 준다
 
         // 쓰다듬기를 만족으로 끝내면 (조금만)
         public double PetExp = 3;
     }
 
     public enum SnackResult { Ok, NoMoney, NotResident }
+
+    /// <summary>간식 한 종류.</summary>
+    public sealed class SnackDef
+    {
+        public string Id, Name;
+        public long Cost;
+        public double Exp, Hunger, Mood;
+    }
+
+    /// <summary>간식 목록. 비쌀수록 한 번에 많이 오른다 (코인당 경험치는 비슷, 하루 횟수를 아낄 수 있다).</summary>
+    public static class Snacks
+    {
+        public static readonly SnackDef Churu = new SnackDef { Id = "churu", Name = "츄르", Cost = 50, Exp = 10, Hunger = 10, Mood = 5 };
+        public static readonly SnackDef Tuna = new SnackDef { Id = "tuna", Name = "참치 큐브", Cost = 120, Exp = 25, Hunger = 20, Mood = 6 };
+        public static readonly SnackDef Salmon = new SnackDef { Id = "salmon", Name = "연어 육포", Cost = 300, Exp = 60, Hunger = 25, Mood = 8 };
+        public static readonly SnackDef[] All = { Churu, Tuna, Salmon };
+    }
 
     /// <summary>
     /// 집 고양이 친밀도 레벨 (Lv.1 ~ 99). 간식 주기·놀아주기·쓰다듬기로 경험치가 쌓이고,
@@ -86,28 +101,32 @@ namespace CatHealingHouse.Cats
             if (c.SnackDay != day) { c.SnackDay = day; c.SnacksToday = 0; }
         }
 
-        /// <summary>오늘 이 고양이에게 다음 간식을 주면 받을 경험치.</summary>
-        public double NextSnackExp(Cat c, int day)
+        /// <summary>오늘 이 고양이에게 다음에 이 간식을 주면 받을 경험치.</summary>
+        public double NextSnackExp(Cat c, SnackDef snack, int day)
         {
             int n = c.SnackDay == day ? c.SnacksToday : 0;
-            if (n < Tuning.SnackFullPerDay) return Tuning.SnackExp;
-            return Math.Max(Tuning.SnackMinExp, Tuning.SnackExp * Math.Pow(0.5, n - Tuning.SnackFullPerDay + 1));
+            if (n < Tuning.SnackFullPerDay) return snack.Exp;
+            return Math.Max(snack.Exp * Tuning.SnackMinShare, snack.Exp * Math.Pow(0.5, n - Tuning.SnackFullPerDay + 1));
         }
 
+        public double NextSnackExp(Cat c, int day) => NextSnackExp(c, Snacks.Churu, day);
+
         /// <summary>간식 주기 (day 는 오늘 날짜 번호, 바뀌면 하루 횟수가 새로 시작). 경험치는 exp 로.</summary>
-        public SnackResult FeedSnack(Cat c, int day, out double exp)
+        public SnackResult FeedSnack(Cat c, SnackDef snack, int day, out double exp)
         {
             exp = 0;
             if (c == null || c.Affiliation != Affiliation.Resident) return SnackResult.NotResident;
-            if (!Wallet.TrySpend(ItemKind.Money, Tuning.SnackCost)) return SnackResult.NoMoney;
-            exp = NextSnackExp(c, day);
+            if (!Wallet.TrySpend(ItemKind.Money, snack.Cost)) return SnackResult.NoMoney;
+            exp = NextSnackExp(c, snack, day);
             RollDay(c, day);
             c.SnacksToday++;
-            c.Needs.Add(NeedType.Hunger, Tuning.SnackHunger);
-            c.AddMood(Tuning.SnackMood);
+            c.Needs.Add(NeedType.Hunger, snack.Hunger);
+            c.AddMood(snack.Mood);
             Gain(c, exp);
             return SnackResult.Ok;
         }
+
+        public SnackResult FeedSnack(Cat c, int day, out double exp) => FeedSnack(c, Snacks.Churu, day, out exp);
 
         // ───────────────────────── 길냥이 들이기 ─────────────────────────
 
