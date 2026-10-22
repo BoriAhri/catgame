@@ -138,6 +138,67 @@ namespace CatHealingHouse.View
             }
         }
 
+        // ───────────────────────── 손가락이 그림 위에 있는지 (쓰다듬기) ─────────────────────────
+
+        /// <summary>
+        /// world 가 지금 화면에 그려진 고양이 그림(부위·테두리·자세 그림) 위인지. 스프라이트의 촘촘한 메시(투명한 곳을 뺀 모양)로 판정한다.
+        /// 겹치면 위에 그려진 부위를 고른다. poseBody 는 한 장짜리 자세 그림의 몸일 때.
+        /// </summary>
+        public bool TryHit(Vector3 world, out CatPart part, out bool poseBody)
+        {
+            part = CatPart.Body;
+            poseBody = false;
+            int best = int.MinValue;
+            bool any = false;
+            foreach (var kv in _renderers)
+            {
+                if (kv.Key == CatPart.Shadow) continue;
+                if (Hit(kv.Value, world) && kv.Value.sortingOrder > best) { best = kv.Value.sortingOrder; part = kv.Key; poseBody = false; any = true; }
+            }
+            foreach (var kv in _outlines)
+                if (Hit(kv.Value, world) && kv.Value.sortingOrder > best) { best = kv.Value.sortingOrder; part = kv.Key; poseBody = false; any = true; }
+            if (_poseR != null)
+            {
+                if (Hit(_poseR, world) && _poseR.sortingOrder > best) { best = _poseR.sortingOrder; part = CatPart.Body; poseBody = true; any = true; }
+                if (Hit(_poseOl, world) && _poseOl.sortingOrder > best) { best = _poseOl.sortingOrder; part = CatPart.Body; poseBody = true; any = true; }
+            }
+            return any;
+        }
+
+        /// <summary>자세 그림 안에서의 위치 (0~1, 왼쪽 아래 기준, 고양이는 오른쪽을 본다).</summary>
+        public Vector2 PoseBodyUV(Vector3 world)
+        {
+            if (_poseR == null || _poseR.sprite == null) return new Vector2(0.5f, 0.5f);
+            var l = _poseR.transform.InverseTransformPoint(world);
+            var b = _poseR.sprite.bounds;
+            return new Vector2((l.x - b.min.x) / Mathf.Max(1e-4f, b.size.x), (l.y - b.min.y) / Mathf.Max(1e-4f, b.size.y));
+        }
+
+        private static bool Hit(SpriteRenderer sr, Vector3 world)
+        {
+            if (sr == null || !sr.enabled || sr.sprite == null || !sr.gameObject.activeInHierarchy || sr.color.a < 0.05f) return false;
+            var t = sr.transform;
+            if (t.lossyScale.x == 0f || t.lossyScale.y == 0f) return false;
+            Vector2 l = t.InverseTransformPoint(world);
+            var sp = sr.sprite;
+            var bb = sp.bounds;
+            if (l.x < bb.min.x || l.x > bb.max.x || l.y < bb.min.y || l.y > bb.max.y) return false;
+            var v = sp.vertices;
+            var tri = sp.triangles;
+            for (int i = 0; i + 2 < tri.Length; i += 3)
+                if (InTri(l, v[tri[i]], v[tri[i + 1]], v[tri[i + 2]])) return true;
+            return false;
+        }
+
+        private static bool InTri(Vector2 p, Vector2 a, Vector2 b, Vector2 c)
+        {
+            float d1 = (p.x - b.x) * (a.y - b.y) - (a.x - b.x) * (p.y - b.y);
+            float d2 = (p.x - c.x) * (b.y - c.y) - (b.x - c.x) * (p.y - c.y);
+            float d3 = (p.x - a.x) * (c.y - a.y) - (c.x - a.x) * (p.y - a.y);
+            bool neg = d1 < 0 || d2 < 0 || d3 < 0, pos = d1 > 0 || d2 > 0 || d3 > 0;
+            return !(neg && pos);
+        }
+
         /// <summary>지금 한 장짜리 자세 그림이 보이는 중.</summary>
         public bool PoseArtShown => _curArt != null && !BellyShown;
 

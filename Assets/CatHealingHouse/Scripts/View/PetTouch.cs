@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CatHealingHouse.Cats;
 using CatHealingHouse.Economy;
@@ -132,8 +132,40 @@ namespace CatHealingHouse.View
         {
             var rig = cv.Rig;
             if (rig == null || !rig.gameObject.activeInHierarchy) return PetZone.None;
-            if (rig.BellyShown) return CatParts.BellyZoneAt(rig.CanvasAtRoot(world), rig.CanvasAt(world, CatPart.Head));
-            return CatParts.ZoneAt(rig.CanvasAt(world, CatPart.Head), rig.CanvasAt(world, CatPart.Body), rig.CanvasAt(world, CatPart.Tail), rig.CanvasAtRoot(world));
+            // 손가락이 실제로 그려진 고양이 그림 위에 있을 때만 (빈 바닥·그림자는 반응 안 함)
+            if (!rig.TryHit(world, out var part, out bool poseBody)) return PetZone.None;
+            bool head = IsHeadPart(part);
+            if (rig.BellyShown)
+            {
+                var bz = CatParts.BellyZoneAt(rig.CanvasAtRoot(world), rig.CanvasAt(world, CatPart.Head));
+                return bz != PetZone.None ? bz : head ? PetZone.Cheek : PetZone.Belly;
+            }
+            if (poseBody)
+            {
+                // 한 장짜리 자세 그림 (앉기·식빵 등): 그림 안 위치로 엉덩이·가슴·등을 나눈다 (오른쪽이 앞)
+                var uv = rig.PoseBodyUV(world);
+                if (uv.x < 0.3f) return uv.y < 0.3f ? PetZone.Tail : PetZone.Rump;
+                if (uv.x > 0.62f && uv.y < 0.55f) return uv.y < 0.18f ? PetZone.Paw : PetZone.Chest;
+                return PetZone.Back;
+            }
+            var z = CatParts.ZoneAt(rig.CanvasAt(world, CatPart.Head), rig.CanvasAt(world, CatPart.Body), rig.CanvasAt(world, CatPart.Tail), rig.CanvasAtRoot(world));
+            if (head) return z == PetZone.Head || z == PetZone.Cheek || z == PetZone.Chin ? z : PetZone.Cheek;
+            switch (part)
+            {
+                case CatPart.Tail: case CatPart.TailTip: return PetZone.Tail;
+                case CatPart.LegFrontNear: case CatPart.LegFrontFar: case CatPart.LegBackNear: case CatPart.LegBackFar: return PetZone.Paw;
+                default: return z == PetZone.Back || z == PetZone.Rump || z == PetZone.Chest || z == PetZone.Belly ? z : PetZone.Back;
+            }
+        }
+
+        private static bool IsHeadPart(CatPart p)
+        {
+            switch (p)
+            {
+                case CatPart.Head: case CatPart.EarL: case CatPart.EarR: case CatPart.EyesOpen: case CatPart.EyesClosed:
+                case CatPart.EyesHalf: case CatPart.EyesHappy: case CatPart.Blush: case CatPart.MouthOpen: return true;
+                default: return false;
+            }
         }
 
         private static string LoveText(PetZone z)
