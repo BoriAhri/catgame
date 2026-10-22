@@ -189,6 +189,26 @@ MonoBehaviour:
       outline: {fileID: 21300000, guid: 0c998897493ecdb49bb929937235bc53, type: 3}
       hasHead: 0
       head: {x: 0, y: 0}
+    - pose: 6
+      sprite: {fileID: 21300000, guid: c2b2bdef6b13861428adc980a1dd3df7, type: 3}
+      outline: {fileID: 21300000, guid: 1ba684117732e2b47962baddb5ac240c, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 7
+      sprite: {fileID: 21300000, guid: 101f872af4bb0814f81b16c2ef64e2dd, type: 3}
+      outline: {fileID: 21300000, guid: 5cff1ce9c99d7a341b9f6ffd4321a320, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 8
+      sprite: {fileID: 21300000, guid: 8358ced0920425c428a7131563e2a76f, type: 3}
+      outline: {fileID: 21300000, guid: 948bdd932578c5947bd9cc9264d7d2e5, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 9
+      sprite: {fileID: 21300000, guid: cf5b5ec67c3ea0c4c962d7beb6a1f7df, type: 3}
+      outline: {fileID: 21300000, guid: e61e9d8b24dd2da4389a529dc293ac7c, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
   - skinId: kkamang
     parts:
     - part: 1
@@ -289,6 +309,26 @@ MonoBehaviour:
     - pose: 5
       sprite: {fileID: 21300000, guid: f3850215a08fa1e4fb54f28e1ce054c4, type: 3}
       outline: {fileID: 21300000, guid: 953b8c40723ea3a4e85aacb227b356ca, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 6
+      sprite: {fileID: 21300000, guid: a6a390122098dd54fa29e9b9260af326, type: 3}
+      outline: {fileID: 21300000, guid: 395884f304dd7d04daf147eaa3d14ab3, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 7
+      sprite: {fileID: 21300000, guid: 35f2f9789aedae4499022c8b335b58cd, type: 3}
+      outline: {fileID: 21300000, guid: 247db17dedf1fec49844186a5194a438, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 8
+      sprite: {fileID: 21300000, guid: c2698ee19f010be469ca6c4d674beb42, type: 3}
+      outline: {fileID: 21300000, guid: 55bb034afa9411642aca9dce87622a6b, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 9
+      sprite: {fileID: 21300000, guid: 43869ec6b3100f84f8f594598a8105a0, type: 3}
+      outline: {fileID: 21300000, guid: 892aececf1387b048ba922ddb66bbbbe, type: 3}
       hasHead: 0
       head: {x: 0, y: 0}
   - skinId: godeungeo
@@ -393,6 +433,26 @@ MonoBehaviour:
       outline: {fileID: 21300000, guid: e575af7092b3c7949b07c4b8f49fb3f6, type: 3}
       hasHead: 0
       head: {x: 0, y: 0}
+    - pose: 6
+      sprite: {fileID: 21300000, guid: 073bb94ba8c09c8429bb99373452b5fe, type: 3}
+      outline: {fileID: 21300000, guid: 249b5ab022a28044896de4506a019c18, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 7
+      sprite: {fileID: 21300000, guid: 78070326563c65547b0500f801706bad, type: 3}
+      outline: {fileID: 21300000, guid: 8452d61c7654be74eb476b0081237925, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 8
+      sprite: {fileID: 21300000, guid: e7c0cbf9ad01df440991b7a6331f50ba, type: 3}
+      outline: {fileID: 21300000, guid: 5b08a33d796277544aebfdf5c5bb1915, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 9
+      sprite: {fileID: 21300000, guid: 57f7347ecfdb26b4caf385e063c3bf30, type: 3}
+      outline: {fileID: 21300000, guid: 708e1502e971c66409669dcc076e69ce, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
   - skinId: samsaek
     parts:
     - part: 1
@@ -493,6 +553,26 @@ MonoBehaviour:
     - pose: 5
       sprite: {fileID: 21300000, guid: 487b2968b84e41d4aa61ac24dd5387ae, type: 3}
       outline: {fileID: 21300000, guid: 1418080b48119f74b8b479e3e9fab17b, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 6
+      sprite: {fileID: 21300000, guid: e05b0eaa90f4830459b7f0f68857f0b7, type: 3}
+      outline: {fileID: 21300000, guid: b007107c0c2dfe3468762aa6f6122a2d, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 7
+      sprite: {fileID: 21300000, guid: 9f08f6a7177704a4ca77e7392fe5be2a, type: 3}
+      outline: {fileID: 21300000, guid: 820f28f3d37420b47ae70d500e79f6f7, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 8
+      sprite: {fileID: 21300000, guid: 7cfc11c70bcb9f94ab7a96e9ade35185, type: 3}
+      outline: {fileID: 21300000, guid: f4e9fc2691076024b957794ba7cad6e3, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 9
+      sprite: {fileID: 21300000, guid: 121c09aca2eb3f4488d76aa888d237d2, type: 3}
+      outline: {fileID: 21300000, guid: 7f7932c1d9b300242821f2e881213853, type: 3}
       hasHead: 0
       head: {x: 0, y: 0}
   - skinId: stray_cheese
@@ -597,6 +677,26 @@ MonoBehaviour:
       outline: {fileID: 21300000, guid: 0c998897493ecdb49bb929937235bc53, type: 3}
       hasHead: 0
       head: {x: 0, y: 0}
+    - pose: 6
+      sprite: {fileID: 21300000, guid: c2b2bdef6b13861428adc980a1dd3df7, type: 3}
+      outline: {fileID: 21300000, guid: 1ba684117732e2b47962baddb5ac240c, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 7
+      sprite: {fileID: 21300000, guid: 101f872af4bb0814f81b16c2ef64e2dd, type: 3}
+      outline: {fileID: 21300000, guid: 5cff1ce9c99d7a341b9f6ffd4321a320, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 8
+      sprite: {fileID: 21300000, guid: 8358ced0920425c428a7131563e2a76f, type: 3}
+      outline: {fileID: 21300000, guid: 948bdd932578c5947bd9cc9264d7d2e5, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 9
+      sprite: {fileID: 21300000, guid: cf5b5ec67c3ea0c4c962d7beb6a1f7df, type: 3}
+      outline: {fileID: 21300000, guid: e61e9d8b24dd2da4389a529dc293ac7c, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
   - skinId: stray_black
     parts:
     - part: 1
@@ -697,6 +797,26 @@ MonoBehaviour:
     - pose: 5
       sprite: {fileID: 21300000, guid: f3850215a08fa1e4fb54f28e1ce054c4, type: 3}
       outline: {fileID: 21300000, guid: 953b8c40723ea3a4e85aacb227b356ca, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 6
+      sprite: {fileID: 21300000, guid: a6a390122098dd54fa29e9b9260af326, type: 3}
+      outline: {fileID: 21300000, guid: 395884f304dd7d04daf147eaa3d14ab3, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 7
+      sprite: {fileID: 21300000, guid: 35f2f9789aedae4499022c8b335b58cd, type: 3}
+      outline: {fileID: 21300000, guid: 247db17dedf1fec49844186a5194a438, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 8
+      sprite: {fileID: 21300000, guid: c2698ee19f010be469ca6c4d674beb42, type: 3}
+      outline: {fileID: 21300000, guid: 55bb034afa9411642aca9dce87622a6b, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 9
+      sprite: {fileID: 21300000, guid: 43869ec6b3100f84f8f594598a8105a0, type: 3}
+      outline: {fileID: 21300000, guid: 892aececf1387b048ba922ddb66bbbbe, type: 3}
       hasHead: 0
       head: {x: 0, y: 0}
   - skinId: stray_mackerel
@@ -801,6 +921,26 @@ MonoBehaviour:
       outline: {fileID: 21300000, guid: e575af7092b3c7949b07c4b8f49fb3f6, type: 3}
       hasHead: 0
       head: {x: 0, y: 0}
+    - pose: 6
+      sprite: {fileID: 21300000, guid: 073bb94ba8c09c8429bb99373452b5fe, type: 3}
+      outline: {fileID: 21300000, guid: 249b5ab022a28044896de4506a019c18, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 7
+      sprite: {fileID: 21300000, guid: 78070326563c65547b0500f801706bad, type: 3}
+      outline: {fileID: 21300000, guid: 8452d61c7654be74eb476b0081237925, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 8
+      sprite: {fileID: 21300000, guid: e7c0cbf9ad01df440991b7a6331f50ba, type: 3}
+      outline: {fileID: 21300000, guid: 5b08a33d796277544aebfdf5c5bb1915, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 9
+      sprite: {fileID: 21300000, guid: 57f7347ecfdb26b4caf385e063c3bf30, type: 3}
+      outline: {fileID: 21300000, guid: 708e1502e971c66409669dcc076e69ce, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
   - skinId: stray_calico
     parts:
     - part: 1
@@ -901,6 +1041,26 @@ MonoBehaviour:
     - pose: 5
       sprite: {fileID: 21300000, guid: 487b2968b84e41d4aa61ac24dd5387ae, type: 3}
       outline: {fileID: 21300000, guid: 1418080b48119f74b8b479e3e9fab17b, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 6
+      sprite: {fileID: 21300000, guid: e05b0eaa90f4830459b7f0f68857f0b7, type: 3}
+      outline: {fileID: 21300000, guid: b007107c0c2dfe3468762aa6f6122a2d, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 7
+      sprite: {fileID: 21300000, guid: 9f08f6a7177704a4ca77e7392fe5be2a, type: 3}
+      outline: {fileID: 21300000, guid: 820f28f3d37420b47ae70d500e79f6f7, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 8
+      sprite: {fileID: 21300000, guid: 7cfc11c70bcb9f94ab7a96e9ade35185, type: 3}
+      outline: {fileID: 21300000, guid: f4e9fc2691076024b957794ba7cad6e3, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 9
+      sprite: {fileID: 21300000, guid: 121c09aca2eb3f4488d76aa888d237d2, type: 3}
+      outline: {fileID: 21300000, guid: 7f7932c1d9b300242821f2e881213853, type: 3}
       hasHead: 0
       head: {x: 0, y: 0}
   - skinId: stray_tuxedo
@@ -1005,6 +1165,26 @@ MonoBehaviour:
       outline: {fileID: 21300000, guid: 5958da95d17085f4db6d23bacf49217b, type: 3}
       hasHead: 0
       head: {x: 0, y: 0}
+    - pose: 6
+      sprite: {fileID: 21300000, guid: 009880d8afdf48048906e6ca53bc24e7, type: 3}
+      outline: {fileID: 21300000, guid: 671a1ffa51e78de47a0970872437274c, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 7
+      sprite: {fileID: 21300000, guid: e7b6d85bc8728ea45801a5314c853801, type: 3}
+      outline: {fileID: 21300000, guid: 859ca37c9f9ba404b9a833d19b568136, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 8
+      sprite: {fileID: 21300000, guid: 38714638912585f44a896661c62d1dc7, type: 3}
+      outline: {fileID: 21300000, guid: c6cc2c4ee64e9724ba3609816139b8f9, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 9
+      sprite: {fileID: 21300000, guid: 29a42e4dcc6d76b459024d5d542f9360, type: 3}
+      outline: {fileID: 21300000, guid: 2a5e48cd1a50d7548bac493efc03b605, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
   - skinId: stray_white
     parts:
     - part: 1
@@ -1107,6 +1287,26 @@ MonoBehaviour:
       outline: {fileID: 21300000, guid: 7ddf94c2e34191a40aab9402b37f251c, type: 3}
       hasHead: 0
       head: {x: 0, y: 0}
+    - pose: 6
+      sprite: {fileID: 21300000, guid: 3dd292af6362e9444999bcc35dcacaa8, type: 3}
+      outline: {fileID: 21300000, guid: e19aff1bfc2be574e9dcfccc85d7970b, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 7
+      sprite: {fileID: 21300000, guid: 41440e1c6e9f2e14ca2c42aaf7eeafcf, type: 3}
+      outline: {fileID: 21300000, guid: e52f5780c5efaf34b83d7e67b8b65224, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 8
+      sprite: {fileID: 21300000, guid: 4b0a8fd4309fa9e4f9ab2d1c95eef9cf, type: 3}
+      outline: {fileID: 21300000, guid: ace8e3fd07df2e1488e1f17084831482, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 9
+      sprite: {fileID: 21300000, guid: 7bbc7e4972c9d1045aa1d45a871de863, type: 3}
+      outline: {fileID: 21300000, guid: a08f3740b27cfcb41a3d85047001d6af, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
   - skinId: stray_siamese
     parts:
     - part: 1
@@ -1207,5 +1407,25 @@ MonoBehaviour:
     - pose: 5
       sprite: {fileID: 21300000, guid: d0f17f3fe79d75948b45ab82853707d8, type: 3}
       outline: {fileID: 21300000, guid: ded2d3a83bccc984bb61db4510bcbdda, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 6
+      sprite: {fileID: 21300000, guid: fd44aa2fc591c9d4c90abdd697121ec1, type: 3}
+      outline: {fileID: 21300000, guid: c1008bafb16e06a47818ada92790c8fc, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 7
+      sprite: {fileID: 21300000, guid: e5acff78fce2de34a9dee125265a2956, type: 3}
+      outline: {fileID: 21300000, guid: 5d3c1f31c24f26a4c9aa5832e85f0dd8, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 8
+      sprite: {fileID: 21300000, guid: a38f9078be84ab2478eee17e21aa8ff1, type: 3}
+      outline: {fileID: 21300000, guid: a661a2c5441afeb42a94f30bbfdea336, type: 3}
+      hasHead: 0
+      head: {x: 0, y: 0}
+    - pose: 9
+      sprite: {fileID: 21300000, guid: 5ad5333a2da027543bbac83afd456e09, type: 3}
+      outline: {fileID: 21300000, guid: baffec495929d4d4d9c3fff48b0e920e, type: 3}
       hasHead: 0
       head: {x: 0, y: 0}

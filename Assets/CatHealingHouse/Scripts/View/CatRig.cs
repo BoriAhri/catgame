@@ -122,8 +122,12 @@ namespace CatHealingHouse.View
         {
             switch (pose)
             {
-                case CatPose.Sit: case CatPose.SitIdle: case CatPose.Yawn: case CatPose.Litter: case CatPose.Groom: case CatPose.EarScratch:
+                case CatPose.Sit: case CatPose.SitIdle: case CatPose.Yawn: case CatPose.Litter:
                     return ArtLibrary.CatPoseArt.Sit;
+                case CatPose.Stretch: return ArtLibrary.CatPoseArt.Stretch;
+                case CatPose.Groom: return ArtLibrary.CatPoseArt.Groom;
+                case CatPose.EarScratch: return ArtLibrary.CatPoseArt.Scratch;
+                case CatPose.Eat: return ArtLibrary.CatPoseArt.Eat;
                 case CatPose.Lie: case CatPose.Hide: return ArtLibrary.CatPoseArt.Loaf;
                 case CatPose.Sleep: return ArtLibrary.CatPoseArt.Curl;
                 case CatPose.Sprawl: return ArtLibrary.CatPoseArt.Sprawl;
@@ -516,6 +520,25 @@ namespace CatHealingHouse.View
                 float br = Mathf.Sin(t * (pose == CatPose.Sleep ? 1.4f : 2.0f));
                 float settle = Smooth(Mathf.Clamp01((time - _artStart) / 0.22f));
                 _poseR.transform.localScale = new Vector3(1f + (1f - settle) * 0.03f, (0.95f + 0.05f * settle) * (1f + br * 0.012f), 1f);
+                _poseR.transform.localRotation = Quaternion.identity;
+                _poseR.transform.localPosition = Vector3.zero;
+                // 머리까지 그린 동작 그림은 그림 자체를 살짝 움직여 동작처럼 보이게 한다
+                switch (art.pose)
+                {
+                    case ArtLibrary.CatPoseArt.Groom:      // 핥을 때마다 까딱
+                        _poseR.transform.localRotation = Quaternion.Euler(0, 0, Mathf.Max(0f, Mathf.Sin(t * 6f)) * 2.2f);
+                        break;
+                    case ArtLibrary.CatPoseArt.Scratch:    // 긁긁 빠른 떨림
+                        _poseR.transform.localPosition = new Vector3(Mathf.Sin(t * 26f) * 0.004f, Mathf.Abs(Mathf.Sin(t * 26f)) * 0.003f, 0);
+                        break;
+                    case ArtLibrary.CatPoseArt.Eat:        // 오물오물
+                        _poseR.transform.localScale = Vector3.Scale(_poseR.transform.localScale, new Vector3(1f, 1f + Mathf.Sin(t * 9f) * 0.012f, 1f));
+                        break;
+                    case ArtLibrary.CatPoseArt.Stretch:    // 쭉 늘어나며 부르르
+                        float a = Smooth(Mathf.Clamp01(pt / 0.6f)) * Smooth(Mathf.Clamp01((2.4f - pt) / 0.5f));
+                        _poseR.transform.localScale = Vector3.Scale(_poseR.transform.localScale, new Vector3(1f + 0.04f * a, 1f - 0.02f * a + Mathf.Sin(t * 30f) * 0.004f * a, 1f));
+                        break;
+                }
                 float lower = pose == CatPose.Groom || pose == CatPose.EarScratch ? -0.012f : 0f;
                 _bones[CatPart.Head].localPosition = (Vector3)art.head + new Vector3(0, art.head.y * br * 0.012f + lower, 0);
                 // 머리를 크게 돌리면 목 뒤로 그림 가장자리가 비치므로 조금만 돌린다

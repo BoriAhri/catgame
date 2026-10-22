@@ -46,8 +46,8 @@ namespace CatHealingHouse.View.Art
             public Sprite outline;
         }
 
-        /// <summary>자세 한 장짜리 몸 그림 종류 (앉기, 식빵, 엎드리기, 웅크려 자기, 쭉 뻗기, 발라당).</summary>
-        public enum CatPoseArt { Sit, Loaf, Prone, Curl, Sprawl, Belly }
+        /// <summary>자세 한 장짜리 몸 그림 종류 (앉기, 식빵, 엎드리기, 웅크려 자기, 쭉 뻗기, 발라당, 기지개, 그루밍, 귀 긁기, 밥 먹기). 뒤에 붙일 것.</summary>
+        public enum CatPoseArt { Sit, Loaf, Prone, Curl, Sprawl, Belly, Stretch, Groom, Scratch, Eat }
 
         [Serializable]
         public sealed class PoseArt
