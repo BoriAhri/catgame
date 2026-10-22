@@ -128,10 +128,14 @@ namespace CatHealingHouse.Economy
             else
             {
                 var kind = RewardTable.TrayItemFor(f.Def);
-                if (kind != ItemKind.None) AddToTray(f, kind, 1);
+                // 동전 솜씨: 가끔 하나 더
+                int count = 1 + (_rng.NextDouble() < CatSkills.CoinChance(cat) ? 1 : 0);
+                if (kind != ItemKind.None) AddToTray(f, kind, count);
             }
 
-            if (!_hearts.ContainsKey(f.Id) && (!_heartReadyAt.TryGetValue(f.Id, out var ready) || Now >= ready))
+            // 하트 뿜뿜: 이 고양이에게는 가구 하트 대기시간이 짧다
+            double cut = Tuning.HeartCooldown * CatSkills.HeartCut(cat);
+            if (!_hearts.ContainsKey(f.Id) && (!_heartReadyAt.TryGetValue(f.Id, out var ready) || Now >= ready - cut))
                 _hearts[f.Id] = new HeartMarker { FurnitureId = f.Id, Board = f.Board, CreatedAt = Now, ExpiresAt = Now + Tuning.HeartLifetime };
             Changed?.Invoke();
         }
@@ -221,8 +225,9 @@ namespace CatHealingHouse.Economy
             if (cat.State != CatState.Wandering && cat.State != CatState.MovingToTarget) return;
             // 방금 떠난 칸에 떨어뜨린다 (고양이가 지나간 자리)
             double roll = _rng.NextDouble();
-            if (roll < Tuning.WhiskerPerHop) TryDrop(cat.PrevCell, ItemKind.Whisker);
-            else if (roll < Tuning.WhiskerPerHop + Tuning.FurballPerHop) TryDrop(cat.PrevCell, ItemKind.Furball);
+            double wh = Tuning.WhiskerPerHop * CatSkills.WhiskerScale(cat), fb = Tuning.FurballPerHop * CatSkills.FurballScale(cat);
+            if (roll < wh) TryDrop(cat.PrevCell, ItemKind.Whisker);
+            else if (roll < wh + fb) TryDrop(cat.PrevCell, ItemKind.Furball);
         }
 
         private void OnStepped(double dt)
@@ -243,15 +248,16 @@ namespace CatHealingHouse.Economy
                 if (cat.Affiliation != Affiliation.Resident) continue;
                 if (cat.State == CatState.Grooming)
                 {
-                    if (_rng.NextDouble() < Tuning.FurballGroomPerSecond * dt) TryDropNear(cat, ItemKind.Furball);
+                    if (_rng.NextDouble() < Tuning.FurballGroomPerSecond * CatSkills.FurballScale(cat) * dt) TryDropNear(cat, ItemKind.Furball);
                 }
                 else if (cat.State == CatState.Using)
                 {
                     var f = Sim.World.GetFurniture(cat.TargetFurnitureId);
                     if (f == null || f.Def.Id != FurnitureCatalog.Scratcher.Id) continue;
                     double roll = _rng.NextDouble();
-                    if (roll < Tuning.WhiskerScratchPerSecond * dt) TryDropNear(cat, ItemKind.Whisker);
-                    else if (roll < (Tuning.WhiskerScratchPerSecond + Tuning.FurballScratchPerSecond) * dt) TryDropNear(cat, ItemKind.Furball);
+                    double ws = Tuning.WhiskerScratchPerSecond * CatSkills.WhiskerScale(cat), fs = Tuning.FurballScratchPerSecond * CatSkills.FurballScale(cat);
+                    if (roll < ws * dt) TryDropNear(cat, ItemKind.Whisker);
+                    else if (roll < (ws + fs) * dt) TryDropNear(cat, ItemKind.Furball);
                 }
             }
         }

@@ -1123,7 +1123,7 @@ namespace CatHealingHouse.View
         private float _profileOpenedAt;
         private Rect _profileRectGui;
         private const float ProfileH = 432f;
-        private enum ProfileMenu { None, Snack, Costume }
+        private enum ProfileMenu { None, Snack, Costume, Skill }
         private ProfileMenu _profileMenu;
         private Cat _profileMenuCat;
 
@@ -1448,21 +1448,31 @@ namespace CatHealingHouse.View
             if (_profileMenuCat != cat) { _profileMenuCat = cat; _profileMenu = ProfileMenu.None; }
             float iy = r.y + 236;
             bool maxLv = Intimacy.IsMax(cat);
-            string sp = cat.SkillPoints > 0 ? $"   <size=14><color=#5E9C4C>스킬 포인트 {cat.SkillPoints}</color></size>" : "";
-            GUI.Label(new Rect(r.x + 14, iy, r.width - 170, 26), maxLv
-                ? $"친밀도 Lv.{cat.IntimacyLevel} <size=14>(최대)</size>{sp}"
-                : $"친밀도 Lv.{cat.IntimacyLevel}  <size=14><color=#A08876>{System.Math.Floor(cat.IntimacyExp):0} / {Intimacy.Need(cat.IntimacyLevel)}</color></size>{sp}", _menuTitle);
-            var ebar = new Rect(r.x + 14, iy + 34, r.width - 28 - 160, 14);
+            GUI.Label(new Rect(r.x + 14, iy, r.width - 240, 26), maxLv
+                ? $"친밀도 Lv.{cat.IntimacyLevel} <size=14>(최대)</size>"
+                : $"친밀도 Lv.{cat.IntimacyLevel}  <size=14><color=#A08876>{System.Math.Floor(cat.IntimacyExp):0} / {Intimacy.Need(cat.IntimacyLevel)}</color></size>", _menuTitle);
+            var ebar = new Rect(r.x + 14, iy + 34, r.width - 28 - 230, 14);
             GUI.DrawTexture(ebar, Solid(SdfCanvas.Col("#EADBC6")));
             GUI.DrawTexture(new Rect(ebar.x, ebar.y, ebar.width * (float)Intimacy.Progress(cat), ebar.height), Solid(SdfCanvas.Col("#F2B05E")));
-            var snackBtn = new Rect(r.xMax - 14 - 140, iy, 66, 56);
-            var clothesBtn = new Rect(r.xMax - 14 - 66, iy, 66, 56);
+            var snackBtn = new Rect(r.xMax - 14 - 208, iy, 64, 56);
+            var clothesBtn = new Rect(r.xMax - 14 - 138, iy, 64, 56);
+            var skillBtn = new Rect(r.xMax - 14 - 68, iy, 64, 56);
             if (GUI.Button(snackBtn, GUIContent.none, _profileMenu == ProfileMenu.Snack ? _btnOn : _btn))
             { _profileMenu = _profileMenu == ProfileMenu.Snack ? ProfileMenu.None : ProfileMenu.Snack; SoundKit.Play("click"); }
-            CuteArt.DrawSprite(new Rect(snackBtn.x + 11, snackBtn.y + 6, 44, 44), UiKit.Icon("churu"));
+            CuteArt.DrawSprite(new Rect(snackBtn.x + 10, snackBtn.y + 6, 44, 44), UiKit.Icon("churu"));
             if (GUI.Button(clothesBtn, GUIContent.none, _profileMenu == ProfileMenu.Costume ? _btnOn : _btn))
             { _profileMenu = _profileMenu == ProfileMenu.Costume ? ProfileMenu.None : ProfileMenu.Costume; SoundKit.Play("click"); }
-            CuteArt.DrawSprite(new Rect(clothesBtn.x + 11, clothesBtn.y + 6, 44, 44), UiKit.Icon("clothes"));
+            CuteArt.DrawSprite(new Rect(clothesBtn.x + 10, clothesBtn.y + 6, 44, 44), UiKit.Icon("clothes"));
+            if (GUI.Button(skillBtn, GUIContent.none, _profileMenu == ProfileMenu.Skill ? _btnOn : _btn))
+            { _profileMenu = _profileMenu == ProfileMenu.Skill ? ProfileMenu.None : ProfileMenu.Skill; SoundKit.Play("click"); }
+            CuteArt.DrawSprite(new Rect(skillBtn.x + 10, skillBtn.y + 6, 44, 44), UiKit.Icon("skill"));
+            // 남은 스킬 포인트 (빨간 동그라미)
+            if (cat.SkillPoints > 0)
+            {
+                var dot = new Rect(skillBtn.xMax - 24, skillBtn.y - 8, 28, 28);
+                CuteArt.DrawSprite(dot, UiKit.Icon("dot"));
+                GUI.Label(dot, $"<color=#FFFFFF><size=14>{cat.SkillPoints}</size></color>", _shopNameCenter);
+            }
 
             // 고른 버튼의 종류 목록
             float cy = r.y + 304;
@@ -1516,8 +1526,34 @@ namespace CatHealingHouse.View
                     cx += card.width + 8;
                 }
             }
-            // 쓰다듬기 안내
-            GUI.Label(new Rect(r.x + 14, r.yMax - 50, r.width - 28, 40), "<color=#8E6A4B>끝까지 확대해서 고양이를 손가락으로 쓰다듬어 보세요</color>", _shopNameCenter);
+            else if (_profileMenu == ProfileMenu.Skill)
+            {
+                // 패시브 스킬: 카드를 누르면 스킬 포인트 1개로 레벨업
+                float sw = (r.width - 28 - 3 * 8) / 4f;
+                float cx = r.x + 14;
+                foreach (var def in CatSkills.Defs)
+                {
+                    var card = new Rect(cx, cy, sw, 76);
+                    int lv = CatSkills.Level(cat, def.Id);
+                    bool can = CatSkills.CanUpgrade(cat, def.Id);
+                    bool maxed = lv >= def.Max;
+                    GUI.Label(card, "", can ? _btn : maxed ? _btnOn : _btnOff);
+                    GUI.Label(new Rect(card.x + 2, card.y + 2, card.width - 4, card.height - 4),
+                        $"<size=15>{def.Name}</size>\n<size=12>Lv.{lv}/{def.Max}</size>\n<size=12><color=#5E9C4C>{def.Effect(lv)}</color></size>", _shopNameCenter);
+                    if (GUI.Button(card, GUIContent.none, GUIStyle.none))
+                    {
+                        if (CatSkills.Upgrade(cat, def.Id)) { Say($"{cat.Name} {def.Name} Lv.{lv + 1}! {def.Effect(lv + 1)}"); SoundKit.Play("heart"); _saveSoon = true; }
+                        else if (maxed) { Say($"{def.Name}은(는) 이미 최대 레벨이에요."); SoundKit.Play("click"); }
+                        else { Say($"{def.Desc}. 스킬 포인트가 없어요 (친밀도 레벨이 오르면 1개씩)"); SoundKit.Play("click"); }
+                    }
+                    cx += sw + 8;
+                }
+            }
+            // 아래 안내: 스킬 창이면 남은 포인트, 아니면 쓰다듬기 안내
+            string hint = _profileMenu == ProfileMenu.Skill
+                ? $"스킬 포인트 {cat.SkillPoints}개 · 카드를 누르면 1개로 레벨업"
+                : "끝까지 확대해서 고양이를 손가락으로 쓰다듬어 보세요";
+            GUI.Label(new Rect(r.x + 14, r.yMax - 50, r.width - 28, 40), $"<color=#8E6A4B>{hint}</color>", _shopNameCenter);
         }
 
         private void DrawTray(float h)

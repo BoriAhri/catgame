@@ -133,6 +133,8 @@ namespace CatHealingHouse.Cats
         public int SkillPoints;
         /// <summary>간식 하루 횟수 세기 (SnackDay 날짜에 SnacksToday 번).</summary>
         public int SnackDay, SnacksToday;
+        /// <summary>패시브 스킬 레벨 (CatSkills 의 Id → 레벨).</summary>
+        public readonly System.Collections.Generic.Dictionary<string, int> Skills = new System.Collections.Generic.Dictionary<string, int>();
 
 
         /// <summary>겉모습 열쇠 (저장·불러오기 때 같은 그림을 다시 고르려고). 화면 쪽에서 정한다.</summary>

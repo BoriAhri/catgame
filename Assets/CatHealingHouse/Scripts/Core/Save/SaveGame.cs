@@ -20,6 +20,7 @@ namespace CatHealingHouse.Save
         public double Hunger, Bladder, Energy, Fun, Mood; public int Board; public int Q, R;
         public double PetFatigue, PetFatigueAgo, PetHeartWait;
         public int IntimacyLevel; public double IntimacyExp; public int SkillPoints, SnackDay, SnacksToday;
+        public List<CountSave> CatSkills = new List<CountSave>();
     }
     [Serializable] public sealed class StraySave { public int Id; public double Affection; public int Visits, Meals; public bool Discovered, Adopted; }
     [Serializable] public sealed class CountSave { public string Id; public int Count; }
@@ -101,6 +102,7 @@ namespace CatHealingHouse.Save
                     PetHeartWait = Math.Max(0, c.PetHeartAt - g.Sim.SimTime),
                     IntimacyLevel = c.IntimacyLevel, IntimacyExp = c.IntimacyExp, SkillPoints = c.SkillPoints,
                     SnackDay = c.SnackDay, SnacksToday = c.SnacksToday,
+                    CatSkills = SkillsOf(c),
                 });
             }
             if (g.Strays != null)
@@ -183,6 +185,7 @@ namespace CatHealingHouse.Save
                 cat.SkillPoints = cs.SkillPoints;
                 cat.SnackDay = cs.SnackDay;
                 cat.SnacksToday = cs.SnacksToday;
+                if (cs.CatSkills != null) foreach (var sk in cs.CatSkills) Cats.CatSkills.SetLevel(cat, sk.Id, sk.Count);
                 cats.Add(cat);
             }
 
@@ -192,6 +195,13 @@ namespace CatHealingHouse.Save
             g.Clock?.SetElapsed(d.ClockElapsed);
             g.Economy.NotifyChanged();
             return cats;
+        }
+
+        private static List<CountSave> SkillsOf(Cat c)
+        {
+            var list = new List<CountSave>();
+            foreach (var kv in c.Skills) if (kv.Value > 0) list.Add(new CountSave { Id = kv.Key, Count = kv.Value });
+            return list;
         }
 
         private static StrayProfile FindProfile(StraySystem s, int id)

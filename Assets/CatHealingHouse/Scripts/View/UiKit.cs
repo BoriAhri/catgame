@@ -213,6 +213,16 @@ namespace CatHealingHouse.View
                     c.Fill(Capsule(0.2f, 0.32f, 0.8f, 0.66f, 0.12f), Col("#EE8B5B"), Line, w);
                     c.Fill(Intersect(Capsule(0.2f, 0.32f, 0.8f, 0.66f, 0.12f), Union(Capsule(0.33f, 0.52f, 0.43f, 0.32f, 0.018f), Capsule(0.5f, 0.62f, 0.6f, 0.42f, 0.018f), Capsule(0.66f, 0.72f, 0.76f, 0.52f, 0.018f))), Col("#FFE3D2"));
                     break;
+                case "skill":
+                    // 스킬: 금색 메달 + 별
+                    c.Fill(Circle(0.5f, 0.46f, 0.33f), Col("#FFE29A"), Line, w);
+                    c.Fill(Circle(0.5f, 0.46f, 0.25f), Col("#FFD36B"));
+                    c.Fill(Star(0.5f, 0.46f, 0.2f, 5, 0.45f, 0.015f), Col("#F2A93B"), Line, w * 0.5f);
+                    c.Fill(Union(Triangle(new Vector2(0.32f, 0.82f), new Vector2(0.44f, 0.76f), new Vector2(0.38f, 0.7f), 0.02f), Triangle(new Vector2(0.68f, 0.82f), new Vector2(0.56f, 0.76f), new Vector2(0.62f, 0.7f), 0.02f)), Col("#F48A93"), Line, w * 0.6f);
+                    break;
+                case "dot":
+                    c.Fill(Circle(0.5f, 0.5f, 0.42f), Col("#E5735C"), Col("#FFFFFF"), 0.06f);
+                    break;
                 case "sparkle":
                     c.Fill(Star(0.5f, 0.5f, 0.34f, 4, 0.35f, 0.02f), Col("#FFD36B"), Line, w * 0.8f);
                     c.Fill(Star(0.78f, 0.78f, 0.12f, 4, 0.4f, 0.01f), Col("#FFE9A6"));
