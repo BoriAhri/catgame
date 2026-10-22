@@ -55,3 +55,6 @@ Thumbs.db
 # AI 그림 시안 (게임에 안 씀)
 /Assets/_ConceptArt/
 /Assets/_ConceptArt.meta
+# 3D 시험판 (비교용, 커밋 안 함)
+/Assets/_Prototype3D/
+/Assets/_Prototype3D.meta

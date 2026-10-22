@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CatHealingHouse.Furniture;
 using CatHealingHouse.Hex;
@@ -54,6 +54,9 @@ namespace CatHealingHouse.Cats
 
         /// <summary>지금 밤인지 (환경 시스템이 설정). 밤에는 우다다가 잦다.</summary>
         public Func<bool> IsNight;
+
+        /// <summary>놀아주기 두뇌 (PlaySystem). 집 고양이마다 걸음 중이 아닐 때 불리고, true 면 그 틱은 놀이가 맡는다.</summary>
+        public Func<Cat, double, bool> PlayBrain;
 
         public event Action<Cat> CatAdded;
         public event Action<Cat> CatRemoved;
@@ -198,6 +201,7 @@ namespace CatHealingHouse.Cats
             }
             // 가까이 보기로 쓰다듬는 동안은 제자리 (욕구는 그대로 줄어든다)
             if (cat.Held) return;
+            if (PlayBrain != null && PlayBrain(cat, dt)) return;
 
             switch (cat.State)
             {
@@ -283,6 +287,11 @@ namespace CatHealingHouse.Cats
 
                 case CatState.MovingToTarget:
                     UpdateMoving(cat);
+                    return;
+
+                case CatState.Playing:
+                    // 놀이 두뇌가 놓아준 고양이 (보통은 그쪽에서 정리한다)
+                    EnterIdle(cat, 0.5, 1.5);
                     return;
 
                 case CatState.Entering:
@@ -447,6 +456,33 @@ namespace CatHealingHouse.Cats
             EnterIdle(cat, 0.5, 1.5);
             if (slept && _rng.NextDouble() < stretchChance) StartAct(cat, CatAct.Stretch);
         }
+
+        // ───────────────────────── 바깥(놀아주기 등)에서 쓰는 것 ─────────────────────────
+
+        /// <summary>가구 예약·멍때리기·몸짓을 모두 내려놓는다.</summary>
+        public void ClearPlans(Cat cat)
+        {
+            if (cat.HasTarget) ReleaseTarget(cat);
+            cat.LoungeVisit = false;
+            EndLounge(cat);
+            cat.Act = CatAct.None;
+            cat.Zoomies = false;
+        }
+
+        /// <summary>잠깐 멍 (다음 행동은 평소처럼 고른다).</summary>
+        public void SetIdle(Cat cat) => EnterIdle(cat, 0.5, 1.5);
+
+        /// <summary>지금 칸에서 누워 쉰다 (지쳤을 때).</summary>
+        public void Rest(Cat cat, LoungeKind kind, double seconds)
+        {
+            ClearPlans(cat);
+            cat.Lounge = kind;
+            cat.LoungeTimer = seconds;
+            cat.State = CatState.Lounging;
+        }
+
+        /// <summary>이 칸으로 걸어갈 수 있는지 (같은 보드, 지나갈 수 있는 칸, 문 제외).</summary>
+        public bool CanWalk(Cat cat, Cell n) => CanWanderInto(cat, n);
 
         /// <summary>짧은 몸짓을 시작한다 (기지개·하품·귀 긁기). 끝나면 잠깐 멍.</summary>
         public void StartAct(Cat cat, CatAct act)

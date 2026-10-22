@@ -1,4 +1,4 @@
-using CatHealingHouse.Cats;
+﻿using CatHealingHouse.Cats;
 using CatHealingHouse.Furniture;
 using CatHealingHouse.Hex;
 using CatHealingHouse.Stray;
@@ -378,6 +378,15 @@ namespace CatHealingHouse.View
                 squash *= 1f + k * 0.08f;
             }
 
+            if (_cat.PlayPounce > 0)
+            {
+                // 덮치기: 폴짝 뛰어올라 앞으로 내리꽂는다
+                float k = Mathf.Clamp01(1f - (float)(_cat.PlayPounce / 0.6));
+                float arc = Mathf.Sin(k * Mathf.PI);
+                bob += arc * size * 0.3f;
+                squash *= 1f + arc * 0.06f;
+            }
+
             transform.position = pos + new Vector3(0, bob, 0);
 
             // 방향: 움직이는 중이면 실제 이동 방향, 멈췄을 때는 마지막 방향(또는 새로 정한 방향)
@@ -423,6 +432,12 @@ namespace CatHealingHouse.View
 
         private static CatPose PoseFor(Cat cat, FurnitureInstance f, float inside)
         {
+            // 놀아주기: 쫓을 땐 우다다, 서 있으면 납작 엎드려 노려보기, 잡을 땐 덮치기
+            if (cat.State == CatState.Playing)
+            {
+                if (cat.PlayPounce > 0) return CatPose.Pounce;
+                return cat.IsHopping ? CatPose.Zoom : CatPose.Crouch;
+            }
             if (cat.IsHopping) return cat.Zoomies ? CatPose.Zoom : CatPose.Walk;
             if (cat.State == CatState.Lounging) return cat.Lounge == LoungeKind.Sprawl ? CatPose.Sprawl : cat.Lounge == LoungeKind.Lie ? CatPose.Lie : CatPose.SitIdle;
             if (cat.State == CatState.Acting)
@@ -498,6 +513,7 @@ namespace CatHealingHouse.View
                     default: return "";
                 }
             }
+            if (cat.State == CatState.Playing) return cat.PlayPounce > 0 ? "잡았다!" : cat.IsHopping ? "후다닥 쫓는 중" : "노려보는 중…";
             if (cat.Sunbathing) return cat.State == CatState.ToSpot ? "햇빛 자리로" : cat.Lounge == LoungeKind.Sprawl ? "햇빛에 쭉 늘어짐" : "햇빛 쬐는 중";
             if (cat.State == CatState.Lounging) return cat.IsLyingDown ? "누워서 멍~" : "앉아서 멍~";
             if (cat.State == CatState.Acting) return cat.Act == CatAct.Stretch ? "기지개 쭈욱~" : cat.Act == CatAct.Yawn ? "하아암~" : "귀 긁긁";

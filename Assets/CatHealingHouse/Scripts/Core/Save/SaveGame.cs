@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CatHealingHouse.Cats;
 using CatHealingHouse.Economy;
@@ -20,6 +20,7 @@ namespace CatHealingHouse.Save
         public double Hunger, Bladder, Energy, Fun, Mood; public int Board; public int Q, R;
         public double PetFatigue, PetFatigueAgo, PetHeartWait;
         public int IntimacyLevel; public double IntimacyExp; public int SkillPoints, SnackDay, SnacksToday;
+        public int PlayDay; public double PlayExpToday;
         public List<CountSave> CatSkills = new List<CountSave>();
     }
     [Serializable] public sealed class StraySave { public int Id; public double Affection; public int Visits, Meals; public bool Discovered, Adopted; }
@@ -41,6 +42,8 @@ namespace CatHealingHouse.Save
         public List<CountSave> Storage = new List<CountSave>();
         public List<CountSave> Closet = new List<CountSave>();
         public List<CountSave> Skills = new List<CountSave>();
+        /// <summary>놀아주기 낚싯대를 샀는지.</summary>
+        public bool Wand;
     }
 
     /// <summary>저장·불러오기에 필요한 것들을 한데 묶는다.</summary>
@@ -102,6 +105,7 @@ namespace CatHealingHouse.Save
                     PetHeartWait = Math.Max(0, c.PetHeartAt - g.Sim.SimTime),
                     IntimacyLevel = c.IntimacyLevel, IntimacyExp = c.IntimacyExp, SkillPoints = c.SkillPoints,
                     SnackDay = c.SnackDay, SnacksToday = c.SnacksToday,
+                    PlayDay = c.PlayDay, PlayExpToday = c.PlayExpToday,
                     CatSkills = SkillsOf(c),
                 });
             }
@@ -110,6 +114,7 @@ namespace CatHealingHouse.Save
                     d.Strays.Add(new StraySave { Id = p.Id, Affection = p.Affection, Visits = p.Visits, Meals = p.Meals, Discovered = p.Discovered, Adopted = p.Adopted });
 
             foreach (var kv in g.Shop.Storage) if (kv.Value > 0) d.Storage.Add(new CountSave { Id = kv.Key, Count = kv.Value });
+            d.Wand = g.Shop.HasWand;
             if (g.Workshop != null)
                 foreach (var id in Costumes.All) { int n = g.Workshop.Closet(id); if (n > 0) d.Closet.Add(new CountSave { Id = id, Count = n }); }
             if (g.Skills != null)
@@ -185,11 +190,14 @@ namespace CatHealingHouse.Save
                 cat.SkillPoints = cs.SkillPoints;
                 cat.SnackDay = cs.SnackDay;
                 cat.SnacksToday = cs.SnacksToday;
+                cat.PlayDay = cs.PlayDay;
+                cat.PlayExpToday = cs.PlayExpToday;
                 if (cs.CatSkills != null) foreach (var sk in cs.CatSkills) Cats.CatSkills.SetLevel(cat, sk.Id, sk.Count);
                 cats.Add(cat);
             }
 
             foreach (var s in d.Storage) g.Shop.SetStock(s.Id, s.Count);
+            g.Shop.HasWand = d.Wand;
             if (g.Workshop != null) foreach (var s in d.Closet) g.Workshop.SetCloset(s.Id, s.Count);
             if (g.Skills != null) foreach (var s in d.Skills) g.Skills.SetLevel(s.Id, s.Count);
             g.Clock?.SetElapsed(d.ClockElapsed);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CatHealingHouse.Furniture;
 using CatHealingHouse.Hex;
@@ -21,6 +21,9 @@ namespace CatHealingHouse.Economy
 
         public int KibblePackSize = 5;
         public long KibblePackPrice = 40;
+
+        /// <summary>놀아주기 낚싯대 (한 번 사면 계속). 레이저는 처음부터 있다.</summary>
+        public long WandPrice = 300;
 
         // 확장 비용: 시작 크기에서 한 칸씩 3번 (실내 4→5→6→7, 마당 3→4→5→6)
         public long[] IndoorExpandCost = { 600, 1800, 4500 };
@@ -183,6 +186,20 @@ namespace CatHealingHouse.Economy
             }
             // 넓히면 벽이 바깥으로 밀려나므로 벽 가구는 새 벽의 가장 가까운 자리로 옮겨 건다. 자리가 없으면 보관함으로.
             foreach (var d in World.LastDisplaced) AddToStorage(d);
+            Changed?.Invoke();
+            return ShopResult.Ok;
+        }
+
+        // ───────────────────────── 장난감 (놀아주기) ─────────────────────────
+
+        /// <summary>낚싯대를 샀는지 (불러오기에서도 정한다).</summary>
+        public bool HasWand;
+
+        public ShopResult BuyWand()
+        {
+            if (HasWand) return ShopResult.Failed;
+            if (!Wallet.TrySpend(ItemKind.Money, Tuning.WandPrice)) return ShopResult.NotEnoughMoney;
+            HasWand = true;
             Changed?.Invoke();
             return ShopResult.Ok;
         }

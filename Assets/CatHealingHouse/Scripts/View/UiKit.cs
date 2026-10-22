@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CatHealingHouse.View.Art;
 using UnityEngine;
 using static CatHealingHouse.View.Art.SdfCanvas;
@@ -219,6 +219,23 @@ namespace CatHealingHouse.View
                     c.Fill(Circle(0.5f, 0.46f, 0.25f), Col("#FFD36B"));
                     c.Fill(Star(0.5f, 0.46f, 0.2f, 5, 0.45f, 0.015f), Col("#F2A93B"), Line, w * 0.5f);
                     c.Fill(Union(Triangle(new Vector2(0.32f, 0.82f), new Vector2(0.44f, 0.76f), new Vector2(0.38f, 0.7f), 0.02f), Triangle(new Vector2(0.68f, 0.82f), new Vector2(0.56f, 0.76f), new Vector2(0.62f, 0.7f), 0.02f)), Col("#F48A93"), Line, w * 0.6f);
+                    break;
+                case "laser":
+                    // 레이저 포인터: 작은 펜 + 빨간 점
+                    c.Fill(Capsule(0.18f, 0.2f, 0.5f, 0.52f, 0.075f), Col("#C9CED6"), Line, w);
+                    c.Fill(Capsule(0.2f, 0.22f, 0.3f, 0.32f, 0.05f), Col("#8EA0B5"));
+                    c.Fill(Capsule(0.52f, 0.54f, 0.66f, 0.66f, 0.014f), new Color(1f, 0.35f, 0.35f, 0.85f));
+                    c.Fill(Circle(0.74f, 0.74f, 0.17f), new Color(1f, 0.3f, 0.3f, 0.3f));
+                    c.Fill(Circle(0.74f, 0.74f, 0.09f), Col("#FF4A4A"), Line, w * 0.6f);
+                    break;
+                case "wand":
+                    // 깃털 낚싯대: 막대 + 줄 + 깃털
+                    c.Fill(Capsule(0.14f, 0.16f, 0.42f, 0.86f, 0.035f), Col("#B5835A"), Line, w * 0.8f);
+                    c.Fill(Capsule(0.42f, 0.86f, 0.66f, 0.54f, 0.012f), Line);
+                    c.Fill(Capsule(0.66f, 0.52f, 0.54f, 0.22f, 0.06f), Col("#F48A93"), Line, w * 0.7f);
+                    c.Fill(Capsule(0.66f, 0.52f, 0.84f, 0.24f, 0.06f), Col("#8EC5E8"), Line, w * 0.7f);
+                    c.Fill(Capsule(0.66f, 0.52f, 0.69f, 0.14f, 0.065f), Col("#FFD36B"), Line, w * 0.7f);
+                    c.Fill(Circle(0.66f, 0.54f, 0.05f), Col("#E9A24C"), Line, w * 0.5f);
                     break;
                 case "dot":
                     c.Fill(Circle(0.5f, 0.5f, 0.42f), Col("#E5735C"), Col("#FFFFFF"), 0.06f);

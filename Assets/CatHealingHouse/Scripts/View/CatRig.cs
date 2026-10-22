@@ -8,7 +8,9 @@ namespace CatHealingHouse.View
     /// <summary>고양이 몸짓 종류. CatView 가 고양이 상태에서 골라 넘긴다.</summary>
     public enum CatPose { Idle, Walk, Run, Sleep, Eat, Litter, Groom, Sit, Hide, Lie, SitIdle,
         // 몸짓: 기지개, 하품, 옆으로 길게 눕기, 뒷발로 귀 긁기, 우다다 질주
-        Stretch, Yawn, Sprawl, EarScratch, Zoom }
+        Stretch, Yawn, Sprawl, EarScratch, Zoom,
+        // 놀아주기: 납작 엎드려 노려보기, 덮치기
+        Crouch, Pounce }
 
     /// <summary>쓰다듬을 때 눈 (0 평소, 1 반쯤 감음, 2 웃는 눈, 3 감음).</summary>
     public enum PetEyes { Normal, Half, Happy, Closed }
@@ -131,6 +133,7 @@ namespace CatHealingHouse.View
                 case CatPose.Lie: case CatPose.Hide: return ArtLibrary.CatPoseArt.Loaf;
                 case CatPose.Sleep: return ArtLibrary.CatPoseArt.Curl;
                 case CatPose.Sprawl: return ArtLibrary.CatPoseArt.Sprawl;
+                case CatPose.Crouch: return ArtLibrary.CatPoseArt.Prone;
                 default: return null;
             }
         }
@@ -477,7 +480,20 @@ namespace CatHealingHouse.View
                     eyesClosed = eyesClosed || Mathf.Repeat(t, 9f) < 6.5f;
                     break;
                 }
+                case CatPose.Crouch:
+                {
+                    // 사냥 자세: 납작 엎드려 엉덩이를 씰룩 (자세 그림이 있으면 엎드리기 그림)
+                    float wig = Mathf.Sin(t * 16f);
+                    foreach (var leg in new[] { CatPart.LegFrontNear, CatPart.LegFrontFar, CatPart.LegBackNear, CatPart.LegBackFar })
+                        Scale(leg, 1f, 0.45f);
+                    Pos(CatPart.Body, new Vector3(0, -0.04f, 0));
+                    Rot(CatPart.Body, -4f + wig * 1.5f);
+                    Pos(CatPart.Head, new Vector3(0.01f, -0.05f, 0));
+                    Rot(CatPart.Tail, 20f + wig * 12f);
+                    break;
+                }
                 case CatPose.Zoom:
+                case CatPose.Pounce:
                 {
                     // 우다다: 귀를 뒤로 젖히고 꼬리를 부풀려 세운 채 전력 질주 (앞발끼리, 뒷발끼리 모아 뛴다)
                     float ph = hop * Mathf.PI * 4f;
@@ -525,6 +541,9 @@ namespace CatHealingHouse.View
                 // 머리까지 그린 동작 그림은 그림 자체를 살짝 움직여 동작처럼 보이게 한다
                 switch (art.pose)
                 {
+                    case ArtLibrary.CatPoseArt.Prone:      // 사냥 자세: 엉덩이 씰룩
+                        _poseR.transform.localRotation = Quaternion.Euler(0, 0, Mathf.Sin(t * 16f) * 1.2f);
+                        break;
                     case ArtLibrary.CatPoseArt.Groom:      // 핥을 때마다 까딱
                         _poseR.transform.localRotation = Quaternion.Euler(0, 0, Mathf.Max(0f, Mathf.Sin(t * 6f)) * 2.2f);
                         break;

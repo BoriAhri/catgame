@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using CatHealingHouse.Furniture;
 using CatHealingHouse.World;
 
@@ -13,7 +13,7 @@ namespace CatHealingHouse.Cats
     public enum StrayReaction { None, Alert, Curious, Love }
 
     /// <summary>실내 고양이 행동 상태. 가구 사용은 Entering → Using → Exiting 세 구간으로 나눈다.</summary>
-    public enum CatState { Idle, Wandering, MovingToTarget, Entering, Using, Exiting, Grooming, Lounging, ToSpot, Acting }
+    public enum CatState { Idle, Wandering, MovingToTarget, Entering, Using, Exiting, Grooming, Lounging, ToSpot, Acting, Playing }
 
     /// <summary>짧은 몸짓 (Acting 상태에서): 기지개 → 하품, 뒷발로 귀 긁기.</summary>
     public enum CatAct { None, Stretch, Yawn, EarScratch }
@@ -135,6 +135,16 @@ namespace CatHealingHouse.Cats
         public int SnackDay, SnacksToday;
         /// <summary>패시브 스킬 레벨 (CatSkills 의 Id → 레벨).</summary>
         public readonly System.Collections.Generic.Dictionary<string, int> Skills = new System.Collections.Generic.Dictionary<string, int>();
+
+        // 놀아주기 (PlaySystem)
+        /// <summary>덮치는 중 남은 시간 (화면에서 폴짝 뛰어오름).</summary>
+        public double PlayPounce;
+        public double PlayCatchCooldown;
+        /// <summary>지쳐서 쉬는 중: 이 시각(SimTime)까지는 다시 안 논다.</summary>
+        public double PlayRestUntil = double.NegativeInfinity;
+        /// <summary>놀이 경험치 하루 합계 (PlayDay 날짜에 PlayExpToday 만큼).</summary>
+        public int PlayDay;
+        public double PlayExpToday;
 
 
         /// <summary>겉모습 열쇠 (저장·불러오기 때 같은 그림을 다시 고르려고). 화면 쪽에서 정한다.</summary>

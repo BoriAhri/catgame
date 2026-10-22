@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CatHealingHouse.Cats;
 using CatHealingHouse.Economy;
@@ -17,7 +17,7 @@ namespace CatHealingHouse.View
     /// 게임 진입점. 세계(두 보드), 고양이, 경제를 만들고 보드별 뷰·고양이 뷰·세로 화면 카메라·임시 UI 를 붙인다.
     /// 조작 UI 는 임시 IMGUI 이고, 8단계에서 진짜 UI 로 바꾼다.
     /// </summary>
-    public sealed class HouseGame : MonoBehaviour
+    public sealed partial class HouseGame : MonoBehaviour
     {
         private enum Mode { Play, Place, Remove, Distance, Shop }
 
@@ -348,6 +348,7 @@ namespace CatHealingHouse.View
                 _saveSoon = true;
             };
             Petting.SkillLevel = () => Skills.Level(ButlerSkills.GentleHands);
+            SetupPlay();
             _pet = gameObject.AddComponent<PetTouch>();
             _pet.Cam = _cam;
             _pet.Petting = Petting;
@@ -626,6 +627,7 @@ namespace CatHealingHouse.View
         public void ShowBoard(BoardId id)
         {
             CloseMenu();
+            if (_playMode && id != BoardId.Indoor) StopPlay();
             CurrentBoard = id;
             _env?.SetBoard(id);
             LastBoardSwitchTime = Time.time;
@@ -697,6 +699,7 @@ namespace CatHealingHouse.View
 
             HandleZoom();
             HandlePointer();
+            UpdatePlay();
 
             if (_levelUpText != null && Time.time >= _levelUpAt)
             {
@@ -783,6 +786,7 @@ namespace CatHealingHouse.View
             if (pointer == null) return;
             var pos = pointer.position.ReadValue();
             if (_mode == Mode.Place && _selectedDef != null) { HandlePlacePointer(pointer, pos); return; }
+            if (_playMode) { HandlePlayPointer(pointer, pos); return; }
 
             if (pointer.press.wasPressedThisFrame)
             {
@@ -1258,13 +1262,14 @@ namespace CatHealingHouse.View
 
             // ── 아래쪽 바
             if (_mode == Mode.Place || _mode == Mode.Distance) DrawPlaceBar(h);
+            else if (_playMode) DrawPlayBar(h);
             else if (_profileCat == null) DrawTray(h);
 
             // ── 아래 버튼 줄 (트레이 위): 마당/집, 치우기, 스킬, 공방, 상점
             _shopButtonGui = _workshopButtonGui = _skillButtonGui = _floatRowGui = Rect.zero;
-            if ((_mode == Mode.Play || _mode == Mode.Remove) && !_shopOpen && !_workshopOpen && !_skillsOpen && _profileCat == null)
+            if ((_mode == Mode.Play || _mode == Mode.Remove) && !_shopOpen && !_workshopOpen && !_skillsOpen && _profileCat == null && !_playMode)
             {
-                float bw = (UiWidth - 16 - 4 * 8) / 5f, by = h - BottomBarH - 82;
+                float bw = (UiWidth - 16 - 5 * 8) / 6f, by = h - BottomBarH - 82;
                 _floatRowGui = new Rect(8, by, UiWidth - 16, 74);
                 int outside = Strays.StrayCount;
                 bool indoor = CurrentBoard == BoardId.Indoor;
@@ -1278,11 +1283,12 @@ namespace CatHealingHouse.View
                     RefreshViews();
                     FitCamera();
                 }
-                _skillButtonGui = new Rect(8 + 2 * (bw + 8), by, bw, 74);
+                if (IconButton(new Rect(8 + 2 * (bw + 8), by, bw, 74), UiKit.Icon("wand"), "놀기", false, 0)) StartPlay(null);
+                _skillButtonGui = new Rect(8 + 3 * (bw + 8), by, bw, 74);
                 if (IconButton(_skillButtonGui, CuteArt.Item(ItemKind.Heart), "스킬", false, 0)) { _mode = Mode.Play; _skillsOpen = true; _popScroll = Vector2.zero; CloseMenu(); RefreshViews(); _popupOpenedAt = Time.time; SoundKit.Play("open"); }
-                _workshopButtonGui = new Rect(8 + 3 * (bw + 8), by, bw, 74);
+                _workshopButtonGui = new Rect(8 + 4 * (bw + 8), by, bw, 74);
                 if (IconButton(_workshopButtonGui, UiKit.Icon("yarn"), "공방", false, 0)) { _mode = Mode.Play; _workshopOpen = true; _popScroll = Vector2.zero; CloseMenu(); RefreshViews(); _popupOpenedAt = Time.time; SoundKit.Play("open"); }
-                _shopButtonGui = new Rect(8 + 4 * (bw + 8), by, bw, 74);
+                _shopButtonGui = new Rect(8 + 5 * (bw + 8), by, bw, 74);
                 if (IconButton(_shopButtonGui, UiKit.Icon("bag"), "상점", false, 0)) { _mode = Mode.Play; _shopOpen = true; _shopScroll = Vector2.zero; CloseMenu(); RefreshViews(); _popupOpenedAt = Time.time; SoundKit.Play("open"); }
             }
             // 창이 열릴 때 살짝 작게 시작해서 통 하고 커진다
@@ -1448,15 +1454,19 @@ namespace CatHealingHouse.View
             if (_profileMenuCat != cat) { _profileMenuCat = cat; _profileMenu = ProfileMenu.None; }
             float iy = r.y + 236;
             bool maxLv = Intimacy.IsMax(cat);
-            GUI.Label(new Rect(r.x + 14, iy, r.width - 240, 26), maxLv
+            GUI.Label(new Rect(r.x + 14, iy, r.width - 310, 26), maxLv
                 ? $"친밀도 Lv.{cat.IntimacyLevel} <size=14>(최대)</size>"
                 : $"친밀도 Lv.{cat.IntimacyLevel}  <size=14><color=#A08876>{System.Math.Floor(cat.IntimacyExp):0} / {Intimacy.Need(cat.IntimacyLevel)}</color></size>", _menuTitle);
-            var ebar = new Rect(r.x + 14, iy + 34, r.width - 28 - 230, 14);
+            var ebar = new Rect(r.x + 14, iy + 34, r.width - 28 - 300, 14);
             GUI.DrawTexture(ebar, Solid(SdfCanvas.Col("#EADBC6")));
             GUI.DrawTexture(new Rect(ebar.x, ebar.y, ebar.width * (float)Intimacy.Progress(cat), ebar.height), Solid(SdfCanvas.Col("#F2B05E")));
+            var playBtn = new Rect(r.xMax - 14 - 278, iy, 64, 56);
             var snackBtn = new Rect(r.xMax - 14 - 208, iy, 64, 56);
             var clothesBtn = new Rect(r.xMax - 14 - 138, iy, 64, 56);
             var skillBtn = new Rect(r.xMax - 14 - 68, iy, 64, 56);
+            // 장난감: 이 고양이와 놀아주기
+            if (GUI.Button(playBtn, GUIContent.none, _btn)) { StartPlay(cat); return; }
+            CuteArt.DrawSprite(new Rect(playBtn.x + 10, playBtn.y + 6, 44, 44), UiKit.Icon("wand"));
             if (GUI.Button(snackBtn, GUIContent.none, _profileMenu == ProfileMenu.Snack ? _btnOn : _btn))
             { _profileMenu = _profileMenu == ProfileMenu.Snack ? ProfileMenu.None : ProfileMenu.Snack; SoundKit.Play("click"); }
             CuteArt.DrawSprite(new Rect(snackBtn.x + 10, snackBtn.y + 6, 44, 44), UiKit.Icon("churu"));
@@ -1621,7 +1631,7 @@ namespace CatHealingHouse.View
             var area = new Rect(14, (h - ph) * 0.5f, pw, ph);
             // 불투명한 바탕 + 둥근 테두리
             GUI.Box(area, GUIContent.none, _popupStyle);
-            string[] tabs = { "가구", "넓히기", "사료" };
+            string[] tabs = { "가구", "넓히기", "용품" };
             for (int i = 0; i < tabs.Length; i++)
                 if (GUI.Button(new Rect(area.x + 12 + i * 98, area.y + 12, 92, 40), tabs[i], _shopTab == i ? _btnOn : _btn)) { _shopTab = i; _shopScroll = Vector2.zero; }
             GUI.Label(new Rect(area.x + 300, area.y + 14, area.width - 360, 36), $"<b>{Economy.Wallet.Money:N0}원</b>", _menuTitleLight);
@@ -1965,7 +1975,8 @@ namespace CatHealingHouse.View
                 if (Shop.BuyKibble() == ShopResult.Ok) Say($"사료 {Shop.Tuning.KibblePackSize}개 구매! (지금 {Economy.Wallet.Kibble}개)");
                 else Say($"돈이 {price - Economy.Wallet.Money:N0}원 모자라요.");
             }
-            GUI.Label(new Rect(body.x + 6, body.y + 162, body.width - 12, 60), "가구는 사면 보관함으로 가고, 철거해도 보관함으로 돌아와요 (환불 없음).", _label);
+            DrawShopWand(new Rect(body.x, body.y + 162, body.width, 150));
+            GUI.Label(new Rect(body.x + 6, body.y + 324, body.width - 12, 60), "가구는 사면 보관함으로 가고, 철거해도 보관함으로 돌아와요 (환불 없음).", _label);
         }
     }
 
