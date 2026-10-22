@@ -37,7 +37,7 @@ namespace CatHealingHouse.EditorTools
                 if (sp == null) continue;
                 string ol = folder + "/" + kv.Key + "_Outline.png";
                 var outline = File.Exists(ol) ? ImportSprite(ol, canvas, new Vector2(kv.Value[0], kv.Value[1])) : null;
-                parts.Add(new ArtLibrary.CatPartArt { part = part, sprite = sp, outline = outline });
+                parts.Add(new ArtLibrary.CatPartArt { part = part, sprite = sp, outline = outline, joint = Joints.TryGetValue(kv.Key, out var jv) ? jv : Vector2.zero });
             }
             var empty = ImportSprite(folder + "/Empty.png", canvas, new Vector2(0.5f, 0.5f));
             foreach (var p in EmptyParts) parts.Add(new ArtLibrary.CatPartArt { part = p, sprite = empty });
@@ -88,9 +88,13 @@ namespace CatHealingHouse.EditorTools
             return int.Parse(json.Substring(c, e - c).Trim());
         }
 
+        static readonly Dictionary<string, Vector2> Joints = new Dictionary<string, Vector2>();
+
         static Dictionary<string, float[]> ParseParts(string json)
         {
             var result = new Dictionary<string, float[]>();
+            Joints.Clear();
+            string lastPart = null;
             int at = json.IndexOf('{', json.IndexOf("\"parts\"")); // parts 의 { 다음부터
             while (true)
             {
@@ -100,6 +104,16 @@ namespace CatHealingHouse.EditorTools
                 string key = json.Substring(q + 1, q2 - q - 1);
                 at = q2;
                 if (key == "w" || key == "h" || key == "pivot") continue;
+                if (key == "joint")
+                {
+                    // 관절 덮어쓰기 (앞 부위의 것)
+                    int j0 = json.IndexOf('[', q2), j1 = json.IndexOf(']', j0);
+                    var jn = json.Substring(j0 + 1, j1 - j0 - 1).Split(',');
+                    if (lastPart != null) Joints[lastPart] = new Vector2(float.Parse(jn[0].Trim(), System.Globalization.CultureInfo.InvariantCulture), float.Parse(jn[1].Trim(), System.Globalization.CultureInfo.InvariantCulture));
+                    at = j1;
+                    continue;
+                }
+                lastPart = key;
                 int pv = json.IndexOf("\"pivot\"", q2);
                 if (pv < 0) break;
                 int b0 = json.IndexOf('[', pv), b1 = json.IndexOf(']', b0);

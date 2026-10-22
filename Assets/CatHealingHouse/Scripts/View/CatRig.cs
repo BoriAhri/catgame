@@ -466,6 +466,15 @@ namespace CatHealingHouse.View
                 Pos(CatPart.Tail, new Vector3(0.015f, -0.05f, 0));
                 Rot(CatPart.Tail, 64f + Mathf.Sin(t * 0.9f) * 5f);
             }
+            // 진짜 그림은 다리가 보이게 몸을 조금 높게 조립했으므로, 다리를 접는 자세에서는 그만큼 더 내려 바닥에 붙인다
+            if (_outlines.Count > 0)
+            {
+                float drop = pose == CatPose.Lie || pose == CatPose.Sleep || pose == CatPose.Hide ? 0.065f
+                    : pose == CatPose.Sit || pose == CatPose.SitIdle || pose == CatPose.Yawn || pose == CatPose.Litter || pose == CatPose.Groom || pose == CatPose.EarScratch ? 0.035f : 0f;
+                if (drop > 0f)
+                    foreach (var part in new[] { CatPart.Body, CatPart.Head, CatPart.Tail })
+                        _bones[part].localPosition += new Vector3(0, -drop, 0);
+            }
 
             // 자세 전환: 찍어 둔 직전 모습에서 새 자세로 섞는다
             if (_blending)

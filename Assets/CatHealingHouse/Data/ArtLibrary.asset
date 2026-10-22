@@ -91,7 +91,7 @@ MonoBehaviour:
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 9cd973bfba42e1148acb514aafd9e890, type: 3}
-      joint: {x: 0, y: 0}
+      joint: {x: 0.255, y: 0.33}
       outline: {fileID: 21300000, guid: 21e123adcd7851943a28f4430eafbb87, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: a020bdc7429f97743b78fd6704fd8d38, type: 3}
@@ -162,7 +162,7 @@ MonoBehaviour:
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 5248039543f65e74bb65dd0f0e7af993, type: 3}
-      joint: {x: 0, y: 0}
+      joint: {x: 0.255, y: 0.33}
       outline: {fileID: 21300000, guid: e9e6c172f7d2f0e4c838efaee60494d1, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 68a9828ad365cf446a64f724c9eabd8a, type: 3}
@@ -233,7 +233,7 @@ MonoBehaviour:
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 3ebc838ce21af0e44b8ff7250399cd1d, type: 3}
-      joint: {x: 0, y: 0}
+      joint: {x: 0.255, y: 0.33}
       outline: {fileID: 21300000, guid: d26b34519e58828429a6ee484da2d775, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 19356afce1dd0c84395330ee85e5bfc1, type: 3}
@@ -304,7 +304,7 @@ MonoBehaviour:
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 990d32a7c353e6d4b88cadebcb0dd538, type: 3}
-      joint: {x: 0, y: 0}
+      joint: {x: 0.255, y: 0.33}
       outline: {fileID: 21300000, guid: 3a15f8a7b4fb3cb48aa3edea979b07ed, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 50f2f13adf5f1064c8d3718867cf34f2, type: 3}
@@ -375,7 +375,7 @@ MonoBehaviour:
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 9cd973bfba42e1148acb514aafd9e890, type: 3}
-      joint: {x: 0, y: 0}
+      joint: {x: 0.255, y: 0.33}
       outline: {fileID: 21300000, guid: 21e123adcd7851943a28f4430eafbb87, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: a020bdc7429f97743b78fd6704fd8d38, type: 3}
@@ -446,7 +446,7 @@ MonoBehaviour:
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 5248039543f65e74bb65dd0f0e7af993, type: 3}
-      joint: {x: 0, y: 0}
+      joint: {x: 0.255, y: 0.33}
       outline: {fileID: 21300000, guid: e9e6c172f7d2f0e4c838efaee60494d1, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 68a9828ad365cf446a64f724c9eabd8a, type: 3}
@@ -517,7 +517,7 @@ MonoBehaviour:
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 3ebc838ce21af0e44b8ff7250399cd1d, type: 3}
-      joint: {x: 0, y: 0}
+      joint: {x: 0.255, y: 0.33}
       outline: {fileID: 21300000, guid: d26b34519e58828429a6ee484da2d775, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 19356afce1dd0c84395330ee85e5bfc1, type: 3}
@@ -588,7 +588,7 @@ MonoBehaviour:
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 990d32a7c353e6d4b88cadebcb0dd538, type: 3}
-      joint: {x: 0, y: 0}
+      joint: {x: 0.255, y: 0.33}
       outline: {fileID: 21300000, guid: 3a15f8a7b4fb3cb48aa3edea979b07ed, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 50f2f13adf5f1064c8d3718867cf34f2, type: 3}
@@ -659,7 +659,7 @@ MonoBehaviour:
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 8a641e7e41605df46a801f23c6963421, type: 3}
-      joint: {x: 0, y: 0}
+      joint: {x: 0.255, y: 0.33}
       outline: {fileID: 21300000, guid: 5784cd5dca6a2f5428f3a564ec2909b3, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 1e9e3ff7adb926d4f8a81a896c5fcc7d, type: 3}
@@ -730,7 +730,7 @@ MonoBehaviour:
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: e4dc35db4a3fcd846a27734be0206630, type: 3}
-      joint: {x: 0, y: 0}
+      joint: {x: 0.255, y: 0.33}
       outline: {fileID: 21300000, guid: 85159481c2881cc4f89cca57565a4417, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: e75debbc288624a44803b937929a319b, type: 3}
@@ -801,7 +801,7 @@ MonoBehaviour:
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 2324943fa4cb8234cb998944de6a6118, type: 3}
-      joint: {x: 0, y: 0}
+      joint: {x: 0.255, y: 0.33}
       outline: {fileID: 21300000, guid: 6108cf4cd799d724289ff072a33e1995, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 2570ff49e200d7c41b5d100987a3d365, type: 3}
