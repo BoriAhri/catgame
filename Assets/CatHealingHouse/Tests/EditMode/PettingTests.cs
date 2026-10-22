@@ -136,7 +136,7 @@ namespace CatHealingHouse.Tests
     
 
         [Test]
-        public void RollsOverAtHalfSatisfaction()
+        public void RollsOverAtRollThreshold()
         {
             var cat = Resident();
             var s = _pet.Begin(cat);

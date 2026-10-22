@@ -35,7 +35,7 @@ namespace CatHealingHouse.Cats
         public double StrayAnnoyPenalty = 1;
         public double NoseBoopMood = 0.5;
         /// <summary>만족도가 이만큼 차면 스스로 발라당 (한 번에 한 번).</summary>
-        public double RollAt = 0.5;
+        public double RollAt = 0.8;
         /// <summary>배를 안 좋아하는 고양이가 발라당했을 때 배를 만지면 (배 함정): 짜증 +이만큼, 뒷발 팡팡 하고 다시 일어남.</summary>
         public double TrapAnnoy = 0.35;
     }
