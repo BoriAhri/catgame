@@ -796,7 +796,7 @@ namespace CatHealingHouse.View
         }
 
         /// <summary>이 배율(화면 맞춤 대비)보다 더 확대하면 고양이를 쓰다듬을 수 있다.</summary>
-        private const float PetZoom = 0.5f;
+        private const float PetZoom = 0.12f; // 거의 최대로 확대했을 때만 (최대 0.07)
 
         /// <summary>손가락 아래 고양이 (그림의 머리·몸·꼬리·다리 위일 때만).</summary>
         private CatView CatUnder(Vector2 screenPos)
@@ -1434,7 +1434,7 @@ namespace CatHealingHouse.View
             var off = new Rect(cx, cy + 28, r.xMax - cx - 14, 52);
             if (GUI.Button(off, "벗기기", cat.Costume != null ? _btn : _btnOff) && cat.Costume != null) { Workshop.TakeOff(cat); SoundKit.Play("click"); }
             // 쓰다듬기 안내
-            GUI.Label(new Rect(r.x + 14, r.yMax - 50, r.width - 28, 40), "<color=#8E6A4B>크게 확대해서 고양이를 손가락으로 쓰다듬어 보세요</color>", _shopNameCenter);
+            GUI.Label(new Rect(r.x + 14, r.yMax - 50, r.width - 28, 40), "<color=#8E6A4B>끝까지 확대해서 고양이를 손가락으로 쓰다듬어 보세요</color>", _shopNameCenter);
         }
 
         private void DrawTray(float h)
