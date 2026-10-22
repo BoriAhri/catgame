@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using CatHealingHouse.View.Art;
 using UnityEditor;
@@ -43,6 +43,21 @@ namespace CatHealingHouse.EditorTools
             foreach (var p in EmptyParts) parts.Add(new ArtLibrary.CatPartArt { part = p, sprite = empty });
 
             Sprite portrait = File.Exists(folder + "/Portrait.png") ? ImportSprite(folder + "/Portrait.png", 512, new Vector2(0.5f, 0.5f)) : null;
+            // 자세별 한 장짜리 몸 그림: poses.txt 한 줄 = 이름 피벗x 피벗y 머리x 머리y (머리 없으면 -)
+            var poses = new List<ArtLibrary.PoseArt>();
+            if (File.Exists(folder + "/poses.txt"))
+                foreach (var line in File.ReadAllLines(folder + "/poses.txt"))
+                {
+                    var f = line.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+                    if (f.Length < 5 || !System.Enum.TryParse(f[0], out ArtLibrary.CatPoseArt kind)) continue;
+                    var inv = System.Globalization.CultureInfo.InvariantCulture;
+                    var piv = new Vector2(float.Parse(f[1], inv), float.Parse(f[2], inv));
+                    var sp = ImportSprite(folder + "/Pose" + f[0] + ".png", canvas, piv);
+                    if (sp == null) continue;
+                    var pa = new ArtLibrary.PoseArt { pose = kind, sprite = sp, outline = ImportSprite(folder + "/Pose" + f[0] + "_Outline.png", canvas, piv) };
+                    if (f[3] != "-") { pa.hasHead = true; pa.head = new Vector2(float.Parse(f[3], inv), float.Parse(f[4], inv)); }
+                    poses.Add(pa);
+                }
             var lib = AssetDatabase.LoadAssetAtPath<ArtLibrary>(LibraryPath);
             foreach (var id in skinIds)
             {
@@ -50,10 +65,11 @@ namespace CatHealingHouse.EditorTools
                 if (skin == null) { skin = new ArtLibrary.CatSkin { skinId = id }; lib.catSkins.Add(skin); }
                 skin.parts = parts.ToArray();
                 skin.portrait = portrait;
+                skin.poses = poses.ToArray();
             }
             EditorUtility.SetDirty(lib);
             AssetDatabase.SaveAssets();
-            return $"{look}: 부위 {parts.Count}개 → {string.Join(", ", skinIds)}";
+            return $"{look}: 부위 {parts.Count}개, 자세 {poses.Count}개 → {string.Join(", ", skinIds)}";
         }
 
         static Sprite ImportSprite(string path, int canvas, Vector2 pivot)

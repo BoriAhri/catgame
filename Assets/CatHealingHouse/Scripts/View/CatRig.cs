@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CatHealingHouse.View.Art;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -91,7 +91,48 @@ namespace CatHealingHouse.View
                 }
             if (_outlines.Count > 0) _renderers[CatPart.Shadow].sortingOrder = -60;
             _bellyHasHead = lib != null && lib.CatPartSprite(look.SkinId, CatPart.BellyBody) != null;
+            // 자세별 한 장짜리 몸 그림 (앉기·식빵·웅크려 자기·쭉 뻗기): 다리를 접는 자세는 부위를 돌리는 대신 이 그림을 쓴다
+            _poseArts.Clear();
+            if (lib != null)
+                foreach (var pa in lib.PoseArts(look.SkinId))
+                    if (pa != null && pa.sprite != null) _poseArts[pa.pose] = pa;
+            if (_poseArts.Count > 0 && _poseR == null)
+            {
+                var go = new GameObject("PoseBody");
+                go.transform.SetParent(transform, false);
+                _poseR = go.AddComponent<SpriteRenderer>();
+                _poseR.sharedMaterial = material;
+                _poseR.sortingOrder = CatParts.Order(CatPart.Body);
+                var og = new GameObject("PoseBody_Outline");
+                og.transform.SetParent(go.transform, false);
+                _poseOl = og.AddComponent<SpriteRenderer>();
+                _poseOl.sharedMaterial = material;
+                _poseOl.sortingOrder = -40 + CatParts.Order(CatPart.Body);
+                _poseR.enabled = _poseOl.enabled = false;
+            }
         }
+
+        private readonly Dictionary<ArtLibrary.CatPoseArt, ArtLibrary.PoseArt> _poseArts = new Dictionary<ArtLibrary.CatPoseArt, ArtLibrary.PoseArt>();
+        private SpriteRenderer _poseR, _poseOl;
+        private ArtLibrary.PoseArt _curArt;
+        private float _artStart;
+
+        /// <summary>이 자세에서 쓸 한 장짜리 몸 그림 종류 (없으면 부위로 움직인다).</summary>
+        private static ArtLibrary.CatPoseArt? ArtFor(CatPose pose)
+        {
+            switch (pose)
+            {
+                case CatPose.Sit: case CatPose.SitIdle: case CatPose.Yawn: case CatPose.Litter: case CatPose.Groom: case CatPose.EarScratch:
+                    return ArtLibrary.CatPoseArt.Sit;
+                case CatPose.Lie: case CatPose.Hide: return ArtLibrary.CatPoseArt.Loaf;
+                case CatPose.Sleep: return ArtLibrary.CatPoseArt.Curl;
+                case CatPose.Sprawl: return ArtLibrary.CatPoseArt.Sprawl;
+                default: return null;
+            }
+        }
+
+        /// <summary>지금 한 장짜리 자세 그림이 보이는 중.</summary>
+        public bool PoseArtShown => _curArt != null && !BellyShown;
 
         private bool _fullHeadArt, _bellyHasHead;
         private readonly Dictionary<CatPart, SpriteRenderer> _outlines = new Dictionary<CatPart, SpriteRenderer>();
@@ -466,8 +507,23 @@ namespace CatHealingHouse.View
                 Pos(CatPart.Tail, new Vector3(0.015f, -0.05f, 0));
                 Rot(CatPart.Tail, 64f + Mathf.Sin(t * 0.9f) * 5f);
             }
+            // 한 장짜리 자세 그림: 몸은 그림이 맡고, 머리는 그림의 목 자리에 붙여 숨쉬기·두리번(회전)만 남긴다
+            ArtLibrary.PoseArt art = null;
+            if (_poseArts.Count > 0) { var kind = ArtFor(pose); if (kind.HasValue) _poseArts.TryGetValue(kind.Value, out art); }
+            if (art != _curArt) { _curArt = art; _artStart = time; }
+            if (art != null)
+            {
+                float br = Mathf.Sin(t * (pose == CatPose.Sleep ? 1.4f : 2.0f));
+                float settle = Smooth(Mathf.Clamp01((time - _artStart) / 0.22f));
+                _poseR.transform.localScale = new Vector3(1f + (1f - settle) * 0.03f, (0.95f + 0.05f * settle) * (1f + br * 0.012f), 1f);
+                float lower = pose == CatPose.Groom || pose == CatPose.EarScratch ? -0.012f : 0f;
+                _bones[CatPart.Head].localPosition = (Vector3)art.head + new Vector3(0, art.head.y * br * 0.012f + lower, 0);
+                // 머리를 크게 돌리면 목 뒤로 그림 가장자리가 비치므로 조금만 돌린다
+                float hz = Mathf.DeltaAngle(0f, _bones[CatPart.Head].localEulerAngles.z);
+                Rot(CatPart.Head, Mathf.Clamp(hz * 0.6f, -7f, 8f));
+            }
             // 진짜 그림은 다리가 보이게 몸을 조금 높게 조립했으므로, 다리를 접는 자세에서는 그만큼 더 내려 바닥에 붙인다
-            if (_outlines.Count > 0)
+            if (_outlines.Count > 0 && art == null)
             {
                 float drop = pose == CatPose.Lie || pose == CatPose.Sleep || pose == CatPose.Hide ? 0.065f
                     : pose == CatPose.Sit || pose == CatPose.SitIdle || pose == CatPose.Yawn || pose == CatPose.Litter || pose == CatPose.Groom || pose == CatPose.EarScratch ? 0.035f : 0f;
@@ -593,6 +649,24 @@ namespace CatHealingHouse.View
                 if (_renderers.ContainsKey(CatPart.TailTip)) _renderers[CatPart.TailTip].enabled = bodyOn;
                 if (!bodyOn) foreach (var leg in new[] { CatPart.LegFrontNear, CatPart.LegFrontFar, CatPart.LegBackNear, CatPart.LegBackFar }) _renderers[leg].enabled = false;
                 if (_costume != null && _costumeWorn) _costume.enabled = bodyOn || _costumePart == CatPart.Head;
+            }
+
+            if (_poseR != null)
+            {
+                bool artOn = PoseArtShown;
+                _poseR.enabled = _poseOl.enabled = artOn;
+                if (artOn)
+                {
+                    if (_poseR.sprite != _curArt.sprite) { _poseR.sprite = _curArt.sprite; _poseOl.sprite = _curArt.outline; }
+                    _renderers[CatPart.Body].enabled = false;
+                    _renderers[CatPart.Tail].enabled = false;
+                    if (_renderers.ContainsKey(CatPart.TailTip)) _renderers[CatPart.TailTip].enabled = false;
+                    foreach (var leg in new[] { CatPart.LegFrontNear, CatPart.LegFrontFar, CatPart.LegBackNear, CatPart.LegBackFar }) _renderers[leg].enabled = false;
+                    if (!_curArt.hasHead) _bones[CatPart.Head].localScale = Vector3.zero;
+                    // 몸에 입힌 옷(망토 등)은 한 장짜리 그림과 모양이 안 맞아 잠시 숨긴다
+                    if (_costume != null && _costumeWorn) _costume.enabled = _costumePart == CatPart.Head && _curArt.hasHead;
+                }
+                else if (_costume != null && _costumeWorn && !BellyShown) _costume.enabled = true;
             }
 
             if (_renderers.ContainsKey(CatPart.MouthOpen))

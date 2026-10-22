@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CatHealingHouse.Economy;
 using UnityEngine;
@@ -46,12 +46,26 @@ namespace CatHealingHouse.View.Art
             public Sprite outline;
         }
 
+        /// <summary>자세 한 장짜리 몸 그림 종류 (앉기, 식빵, 엎드리기, 웅크려 자기, 쭉 뻗기, 발라당).</summary>
+        public enum CatPoseArt { Sit, Loaf, Prone, Curl, Sprawl, Belly }
+
+        [Serializable]
+        public sealed class PoseArt
+        {
+            public CatPoseArt pose;
+            [Tooltip("몸·다리·꼬리를 한 장에 그린 그림 (피벗 = 발바닥 바닥)")] public Sprite sprite;
+            public Sprite outline;
+            [Tooltip("움직이는 머리를 따로 붙이는 자세면 켬 (그림에서 머리를 지워 둠)")] public bool hasHead;
+            [Tooltip("머리 관절 위치 (루트 기준, 캔버스 단위)")] public Vector2 head;
+        }
+
         [Serializable]
         public sealed class CatSkin
         {
             [Tooltip("고양이 스킨 ID (예: cheese, kkamang)")] public string skinId;
             public CatPartArt[] parts = new CatPartArt[0];
             [Tooltip("프로필 사진 (정사각형 전신 그림). 비워두면 코드 그림")] public Sprite portrait;
+            [Tooltip("자세별 한 장짜리 몸 그림 (있으면 그 자세에서 부위 대신 씀)")] public PoseArt[] poses = new PoseArt[0];
         }
 
         public List<FurnitureArt> furniture = new List<FurnitureArt>();
@@ -96,6 +110,14 @@ namespace CatHealingHouse.View.Art
                 foreach (var p in s.parts) if (p != null && p.part == part) return p.outline;
             }
             return null;
+        }
+
+        /// <summary>자세별 몸 그림 목록 (없으면 빈 배열).</summary>
+        public PoseArt[] PoseArts(string skinId)
+        {
+            if (!string.IsNullOrEmpty(skinId))
+                foreach (var s in catSkins) if (s != null && s.skinId == skinId && s.poses != null) return s.poses;
+            return new PoseArt[0];
         }
 
         /// <summary>프로필 사진 (없으면 null).</summary>
