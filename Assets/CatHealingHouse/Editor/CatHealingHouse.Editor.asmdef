@@ -1,0 +1,11 @@
+{
+  "name": "CatHealingHouse.Editor",
+  "rootNamespace": "CatHealingHouse.EditorTools",
+  "references": ["CatHealingHouse.Core", "CatHealingHouse.View"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "autoReferenced": true,
+  "noEngineReferences": false
+}

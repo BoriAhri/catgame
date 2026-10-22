@@ -49,6 +49,7 @@ namespace CatHealingHouse.View.Art
         {
             [Tooltip("고양이 스킨 ID (예: cheese, kkamang)")] public string skinId;
             public CatPartArt[] parts = new CatPartArt[0];
+            [Tooltip("프로필 사진 (정사각형 전신 그림). 비워두면 코드 그림")] public Sprite portrait;
         }
 
         public List<FurnitureArt> furniture = new List<FurnitureArt>();
@@ -80,6 +81,14 @@ namespace CatHealingHouse.View.Art
                 if (s == null || s.skinId != skinId) continue;
                 foreach (var p in s.parts) if (p != null && p.part == part) return p.sprite;
             }
+            return null;
+        }
+
+        /// <summary>프로필 사진 (없으면 null).</summary>
+        public Sprite PortraitSprite(string skinId)
+        {
+            if (string.IsNullOrEmpty(skinId)) return null;
+            foreach (var s in catSkins) if (s != null && s.skinId == skinId) return s.portrait;
             return null;
         }
 

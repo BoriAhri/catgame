@@ -152,7 +152,7 @@ MonoBehaviour:
   yScale: 0.75
   indoorRadius: 5
   outdoorRadius: 4
-  artLibrary: {fileID: 0}
+  artLibrary: {fileID: 11400000, guid: 36d3e69ff4b637d49941a1bbb9dce814, type: 2}
   indoorBackground: {r: 0.36, g: 0.3, b: 0.27, a: 1}
   outdoorBackground: {r: 0.29, g: 0.36, b: 0.27, a: 1}
 --- !u!4 &1396095932

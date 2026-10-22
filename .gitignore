@@ -51,3 +51,7 @@ Thumbs.db
 # 크래시 복구 백업 씬
 /Assets/_Recovery/
 /Assets/_Recovery.meta
+
+# AI 그림 시안 (게임에 안 씀)
+/Assets/_ConceptArt/
+/Assets/_ConceptArt.meta

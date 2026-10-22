@@ -72,7 +72,12 @@ namespace CatHealingHouse.View
             _renderers[CatPart.Blush].color = new Color(1, 1, 1, 0);
             if (_renderers.ContainsKey(CatPart.BellyBody)) _renderers[CatPart.BellyBody].enabled = false;
             if (_renderers.ContainsKey(CatPart.MouthOpen)) _renderers[CatPart.MouthOpen].enabled = false;
+            // 진짜 그림(AI 그림 등): 표정은 머리 통째 그림을 덮어쓰고, 발라당 그림은 머리까지 들어 있다
+            _fullHeadArt = lib != null && lib.CatPartSprite(look.SkinId, CatPart.MouthOpen) != null;
+            _bellyHasHead = lib != null && lib.CatPartSprite(look.SkinId, CatPart.BellyBody) != null;
         }
+
+        private bool _fullHeadArt, _bellyHasHead;
 
         // 자세가 바뀔 때 직전 모습에서 부드럽게 넘어가기
         private const float BlendSeconds = 0.25f;
@@ -559,10 +564,21 @@ namespace CatHealingHouse.View
 
             if (_renderers.ContainsKey(CatPart.MouthOpen))
             {
-                _renderers[CatPart.MouthOpen].enabled = mouth > 0.05f && !BellyShown;
-                _bones[CatPart.MouthOpen].localScale = new Vector3(1f + 0.1f * mouth, 0.3f + 0.7f * mouth, 1f);
+                if (_fullHeadArt)
+                {
+                    // 하품하는 머리 그림을 통째로 덮는다 (늘리지 않음)
+                    _renderers[CatPart.MouthOpen].enabled = mouth > 0.3f && !BellyShown;
+                    _bones[CatPart.MouthOpen].localScale = Vector3.one;
+                }
+                else
+                {
+                    _renderers[CatPart.MouthOpen].enabled = mouth > 0.05f && !BellyShown;
+                    _bones[CatPart.MouthOpen].localScale = new Vector3(1f + 0.1f * mouth, 0.3f + 0.7f * mouth, 1f);
+                }
             }
             if (eyes == 0 && poseEyes != 0) eyes = poseEyes;
+            // 발라당 그림에 머리가 들어 있으면 따로 붙은 머리는 숨긴다
+            if (_bellyHasHead && BellyShown) _bones[CatPart.Head].localScale = Vector3.zero;
             _renderers[CatPart.Blush].color = new Color(1, 1, 1, Mathf.Clamp01(_pBlush));
             _renderers[CatPart.EyesOpen].enabled = !eyesClosed && eyes == 0;
             _renderers[CatPart.EyesClosed].enabled = eyesClosed || eyes == 3;

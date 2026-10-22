@@ -56,8 +56,13 @@ namespace CatHealingHouse.View.Art
         // ───────────────────────── 고양이 ─────────────────────────
 
         /// <summary>오른쪽을 보는 앉은 고양이. 발바닥 중앙이 피벗. 월드 폭 1.</summary>
-        public static Sprite Cat(CatLook look, bool eyesClosed) =>
-            Cached($"cat_{look.Key}_{eyesClosed}", () => DrawCat(look, eyesClosed));
+        public static Sprite Cat(CatLook look, bool eyesClosed)
+        {
+            // 진짜 그림 프로필 사진이 있으면 그걸 쓴다
+            var portrait = ArtLibrary.Active != null ? ArtLibrary.Active.PortraitSprite(look.SkinId) : null;
+            if (portrait != null) return portrait;
+            return Cached($"cat_{look.Key}_{eyesClosed}", () => DrawCat(look, eyesClosed));
+        }
 
         private static Sprite DrawCat(CatLook look, bool closed)
         {
