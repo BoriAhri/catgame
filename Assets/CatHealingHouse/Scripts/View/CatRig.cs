@@ -74,10 +74,27 @@ namespace CatHealingHouse.View
             if (_renderers.ContainsKey(CatPart.MouthOpen)) _renderers[CatPart.MouthOpen].enabled = false;
             // 진짜 그림(AI 그림 등): 표정은 머리 통째 그림을 덮어쓰고, 발라당 그림은 머리까지 들어 있다
             _fullHeadArt = lib != null && lib.CatPartSprite(look.SkinId, CatPart.MouthOpen) != null;
+            // 테두리 실루엣: 부위마다 같은 뼈에 붙이고, 모든 색칠보다 아래에 그린다 → 겹치는 안쪽 선은 가려지고 바깥 둘레만 선
+            _outlines.Clear();
+            if (lib != null)
+                foreach (var part in order)
+                {
+                    var ol = lib.CatPartOutline(look.SkinId, part);
+                    if (ol == null) continue;
+                    var go = new GameObject(part + "_Outline");
+                    go.transform.SetParent(_bones[part], false);
+                    var sr = go.AddComponent<SpriteRenderer>();
+                    sr.sharedMaterial = material;
+                    sr.sprite = ol;
+                    sr.sortingOrder = -40 + CatParts.Order(part);
+                    _outlines[part] = sr;
+                }
+            if (_outlines.Count > 0) _renderers[CatPart.Shadow].sortingOrder = -60;
             _bellyHasHead = lib != null && lib.CatPartSprite(look.SkinId, CatPart.BellyBody) != null;
         }
 
         private bool _fullHeadArt, _bellyHasHead;
+        private readonly Dictionary<CatPart, SpriteRenderer> _outlines = new Dictionary<CatPart, SpriteRenderer>();
 
         // 자세가 바뀔 때 직전 모습에서 부드럽게 넘어가기
         private const float BlendSeconds = 0.25f;
@@ -443,6 +460,12 @@ namespace CatHealingHouse.View
 
             // 꼬리 끝: 한 박자 늦게 휘어 부드러운 S자
             if (_bones.ContainsKey(CatPart.TailTip)) Rot(CatPart.TailTip, Mathf.Sin(t * 1.6f - 0.9f) * 14f + tipCurl);
+            // 진짜 그림 꼬리(위로 솟았다 뒤로 말림)는 앉은 자세에서 몸 뒤에 숨어 혹처럼 보이므로 바닥으로 늘어뜨린다
+            if (_outlines.Count > 0 && (pose == CatPose.Sit || pose == CatPose.SitIdle || pose == CatPose.Yawn || pose == CatPose.EarScratch || pose == CatPose.Litter))
+            {
+                Pos(CatPart.Tail, new Vector3(0.015f, -0.05f, 0));
+                Rot(CatPart.Tail, 64f + Mathf.Sin(t * 0.9f) * 5f);
+            }
 
             // 자세 전환: 찍어 둔 직전 모습에서 새 자세로 섞는다
             if (_blending)
@@ -585,6 +608,7 @@ namespace CatHealingHouse.View
             _renderers[CatPart.EyesClosed].enabled = eyesClosed || eyes == 3;
             _renderers[CatPart.EyesHalf].enabled = !eyesClosed && eyes == 1;
             _renderers[CatPart.EyesHappy].enabled = !eyesClosed && eyes == 2;
+            foreach (var kv in _outlines) kv.Value.enabled = _renderers[kv.Key].enabled;
         }
     }
 }

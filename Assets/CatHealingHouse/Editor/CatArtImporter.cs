@@ -34,7 +34,10 @@ namespace CatHealingHouse.EditorTools
             {
                 if (!System.Enum.TryParse(kv.Key, out CatPart part)) continue;
                 var sp = ImportSprite(folder + "/" + kv.Key + ".png", canvas, new Vector2(kv.Value[0], kv.Value[1]));
-                if (sp != null) parts.Add(new ArtLibrary.CatPartArt { part = part, sprite = sp });
+                if (sp == null) continue;
+                string ol = folder + "/" + kv.Key + "_Outline.png";
+                var outline = File.Exists(ol) ? ImportSprite(ol, canvas, new Vector2(kv.Value[0], kv.Value[1])) : null;
+                parts.Add(new ArtLibrary.CatPartArt { part = part, sprite = sp, outline = outline });
             }
             var empty = ImportSprite(folder + "/Empty.png", canvas, new Vector2(0.5f, 0.5f));
             foreach (var p in EmptyParts) parts.Add(new ArtLibrary.CatPartArt { part = p, sprite = empty });

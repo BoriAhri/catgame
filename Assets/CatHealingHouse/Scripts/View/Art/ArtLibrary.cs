@@ -42,6 +42,8 @@ namespace CatHealingHouse.View.Art
             public Sprite sprite;
             [Tooltip("전체 고양이 그림 기준 관절 위치 (0~1). 비워두면(0,0) 기본값")]
             public Vector2 joint;
+            [Tooltip("테두리 실루엣 (있으면 모든 부위 색칠 밑에 깔아서 바깥 둘레에만 선이 보이게)")]
+            public Sprite outline;
         }
 
         [Serializable]
@@ -80,6 +82,18 @@ namespace CatHealingHouse.View.Art
             {
                 if (s == null || s.skinId != skinId) continue;
                 foreach (var p in s.parts) if (p != null && p.part == part) return p.sprite;
+            }
+            return null;
+        }
+
+        /// <summary>부위 테두리 실루엣 (없으면 null).</summary>
+        public Sprite CatPartOutline(string skinId, CatPart part)
+        {
+            if (string.IsNullOrEmpty(skinId)) return null;
+            foreach (var s in catSkins)
+            {
+                if (s == null || s.skinId != skinId) continue;
+                foreach (var p in s.parts) if (p != null && p.part == part) return p.outline;
             }
             return null;
         }

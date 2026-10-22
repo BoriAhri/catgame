@@ -92,592 +92,779 @@ MonoBehaviour:
     - part: 1
       sprite: {fileID: 21300000, guid: 9cd973bfba42e1148acb514aafd9e890, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 21e123adcd7851943a28f4430eafbb87, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: a020bdc7429f97743b78fd6704fd8d38, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: c484292ea5cca0f4fb214903951a7f63, type: 3}
     - part: 3
       sprite: {fileID: 21300000, guid: b35f23da6c0ee9346a594b4fd7b0520e, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: b75d6d45c76876747906d31d9162cf79, type: 3}
     - part: 4
       sprite: {fileID: 21300000, guid: ac7907d5e488d08499c786d542463609, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: bfbbe718aac3aa246a00fd6c9db6525f, type: 3}
     - part: 5
       sprite: {fileID: 21300000, guid: f90d3c4ae7e3b8146ad3768c31a719e4, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 6cad377ef91e9a949987c32f1e0e6833, type: 3}
     - part: 6
       sprite: {fileID: 21300000, guid: 2566244e7c6bb174e85e21a2dce7e13e, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 494a6fbd5976bf44da7510cc92c313dc, type: 3}
     - part: 9
       sprite: {fileID: 21300000, guid: 512123d67dffce640825634eacbe00f8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 74bfe7316e3d3d04bb0cd75c1b21c91f, type: 3}
     - part: 11
       sprite: {fileID: 21300000, guid: 798c68345c63b8249a7880c19bfb55fd, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 13
       sprite: {fileID: 21300000, guid: 824e6adf22d65d546834236e53d2d325, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 14
       sprite: {fileID: 21300000, guid: 3c139661b2199a54f950e142669703ec, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 17
       sprite: {fileID: 21300000, guid: a584589bf3a80174889a80c44dc9ef47, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 16
       sprite: {fileID: 21300000, guid: ded4ec674356f8948920dea0efee153a, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 7
       sprite: {fileID: 21300000, guid: 5e3ce3de8e7fc514dbb389c71d1dc7e8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 8
       sprite: {fileID: 21300000, guid: 5e3ce3de8e7fc514dbb389c71d1dc7e8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 10
       sprite: {fileID: 21300000, guid: 5e3ce3de8e7fc514dbb389c71d1dc7e8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 12
       sprite: {fileID: 21300000, guid: 5e3ce3de8e7fc514dbb389c71d1dc7e8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 15
       sprite: {fileID: 21300000, guid: 5e3ce3de8e7fc514dbb389c71d1dc7e8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     portrait: {fileID: 21300000, guid: bf5d47cd14691c74692c61f4e5b7b649, type: 3}
   - skinId: kkamang
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 5248039543f65e74bb65dd0f0e7af993, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: e9e6c172f7d2f0e4c838efaee60494d1, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 68a9828ad365cf446a64f724c9eabd8a, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: e10c980b318c73543acc142a35056c06, type: 3}
     - part: 3
       sprite: {fileID: 21300000, guid: a4aa9b85738821146b0fdd97826ddb3a, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 4e058fc637b4dc84a8c32be8d721582d, type: 3}
     - part: 4
       sprite: {fileID: 21300000, guid: 464790fc929f9b74c8876a7de2ae6f72, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: d8a1077b8b6988542a1d19689d30aff0, type: 3}
     - part: 5
       sprite: {fileID: 21300000, guid: 906f5d08bfc5a2343b7366f6998e7a71, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: f48d27a286ae45f4d81d6e6809c15456, type: 3}
     - part: 6
       sprite: {fileID: 21300000, guid: 20a5645ebb968d44c98c9fd75a63a076, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: de86e865d75bca842bc88355c4190d8b, type: 3}
     - part: 9
       sprite: {fileID: 21300000, guid: eed3171843160fb4ab34f147a65d3e24, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 76dfdb59bca7a7a40820eadc945450c9, type: 3}
     - part: 11
       sprite: {fileID: 21300000, guid: 5268bd62a3360bb4b9403b0af8bbb890, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 13
       sprite: {fileID: 21300000, guid: 0dbc3b9d7f4adbd48a757963aa32c675, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 14
       sprite: {fileID: 21300000, guid: b65919187074a324ba97f4e5fe3e4e8e, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 17
       sprite: {fileID: 21300000, guid: c79b701a21b117f4fb6d772c1fdad990, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 16
       sprite: {fileID: 21300000, guid: d018c673a28954e40b6f3459f4eca8ed, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 7
       sprite: {fileID: 21300000, guid: 3c782d50a493d7547af39e72578d3f57, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 8
       sprite: {fileID: 21300000, guid: 3c782d50a493d7547af39e72578d3f57, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 10
       sprite: {fileID: 21300000, guid: 3c782d50a493d7547af39e72578d3f57, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 12
       sprite: {fileID: 21300000, guid: 3c782d50a493d7547af39e72578d3f57, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 15
       sprite: {fileID: 21300000, guid: 3c782d50a493d7547af39e72578d3f57, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     portrait: {fileID: 21300000, guid: a7ce0d783c47e5b4b99310ced749ee69, type: 3}
   - skinId: godeungeo
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 3ebc838ce21af0e44b8ff7250399cd1d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: d26b34519e58828429a6ee484da2d775, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 19356afce1dd0c84395330ee85e5bfc1, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 824bada368a2e084697bcbddd620f104, type: 3}
     - part: 3
       sprite: {fileID: 21300000, guid: f35d8a11855a4da49a8a23e65c996d4f, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: d28648c9d1ec58348b88488e56555fa8, type: 3}
     - part: 4
       sprite: {fileID: 21300000, guid: 14dab83cac6c03149a1a08d71ae36533, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: cd893206567c3fe4aafd65ff4c633454, type: 3}
     - part: 5
       sprite: {fileID: 21300000, guid: 5174b003abce7d44c9ba04fc2a15c6a6, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 6c4e02172072d744793c47e2b542b3d0, type: 3}
     - part: 6
       sprite: {fileID: 21300000, guid: 7df58e50fff226d45a02538a0350e6d1, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 1c9dff2f666044f49bc07d6c0249969b, type: 3}
     - part: 9
       sprite: {fileID: 21300000, guid: c42d1b8c7889a2f4fb917a04a9789d7f, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: bbcdda53dae2b3d4aa858353604570a2, type: 3}
     - part: 11
       sprite: {fileID: 21300000, guid: 074151c527508fa408e4179d09cb83f5, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 13
       sprite: {fileID: 21300000, guid: f1fe14c5fa624d347b31816bfff0910e, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 14
       sprite: {fileID: 21300000, guid: f8d284f8cf1ed2249aaee3ddf5eeb617, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 17
       sprite: {fileID: 21300000, guid: 05505045da582a94a8d9c08e5a1ffc0b, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 16
       sprite: {fileID: 21300000, guid: 18e344d3af9d8884d96ce8e18f89e68b, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 7
       sprite: {fileID: 21300000, guid: 564009a0628e8b2419b91fc8fa284a56, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 8
       sprite: {fileID: 21300000, guid: 564009a0628e8b2419b91fc8fa284a56, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 10
       sprite: {fileID: 21300000, guid: 564009a0628e8b2419b91fc8fa284a56, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 12
       sprite: {fileID: 21300000, guid: 564009a0628e8b2419b91fc8fa284a56, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 15
       sprite: {fileID: 21300000, guid: 564009a0628e8b2419b91fc8fa284a56, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     portrait: {fileID: 21300000, guid: 32d584a1f6101d849bd13320e0970d9b, type: 3}
   - skinId: samsaek
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 990d32a7c353e6d4b88cadebcb0dd538, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 3a15f8a7b4fb3cb48aa3edea979b07ed, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 50f2f13adf5f1064c8d3718867cf34f2, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: a2afd402c8b73574db928a1de40447a4, type: 3}
     - part: 3
       sprite: {fileID: 21300000, guid: eb0a8d3fee14fc74d882174fe0c080ed, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 7ee646a2d2161274d8575979c636daf1, type: 3}
     - part: 4
       sprite: {fileID: 21300000, guid: 25381809fe9f1a549a4c119c0d88ff16, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 36331a8291894d74f8cbae8164fc1909, type: 3}
     - part: 5
       sprite: {fileID: 21300000, guid: 29d3997c36cf65849a5bfd13a157122d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 51575eae1933e8345bf1aef030a77ca5, type: 3}
     - part: 6
       sprite: {fileID: 21300000, guid: b53e4f30d63c6b44daddc4b12505cdf0, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 81dbf06dab0584540a36fdb1e4eb112f, type: 3}
     - part: 9
       sprite: {fileID: 21300000, guid: d07557de3f1e0b24db510ce34301823d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 24562cbc9a2791a46b75856c1be1fb29, type: 3}
     - part: 11
       sprite: {fileID: 21300000, guid: 156421fdbbc013a4bb820e4bfe7e0108, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 13
       sprite: {fileID: 21300000, guid: 319b96a03dc8c18429567c32f53faaab, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 14
       sprite: {fileID: 21300000, guid: f1251f0fc7aecd449bcdbfdd0ec2b206, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 17
       sprite: {fileID: 21300000, guid: 06ada3f480c73874ea55eb78c4746135, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 16
       sprite: {fileID: 21300000, guid: 2178759c961e14046bea04239534a23f, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 7
       sprite: {fileID: 21300000, guid: 9746ea9719b982c4297a109e697ae226, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 8
       sprite: {fileID: 21300000, guid: 9746ea9719b982c4297a109e697ae226, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 10
       sprite: {fileID: 21300000, guid: 9746ea9719b982c4297a109e697ae226, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 12
       sprite: {fileID: 21300000, guid: 9746ea9719b982c4297a109e697ae226, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 15
       sprite: {fileID: 21300000, guid: 9746ea9719b982c4297a109e697ae226, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     portrait: {fileID: 21300000, guid: 892d893c464c90c4baba789c82fada52, type: 3}
   - skinId: stray_cheese
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 9cd973bfba42e1148acb514aafd9e890, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 21e123adcd7851943a28f4430eafbb87, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: a020bdc7429f97743b78fd6704fd8d38, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: c484292ea5cca0f4fb214903951a7f63, type: 3}
     - part: 3
       sprite: {fileID: 21300000, guid: b35f23da6c0ee9346a594b4fd7b0520e, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: b75d6d45c76876747906d31d9162cf79, type: 3}
     - part: 4
       sprite: {fileID: 21300000, guid: ac7907d5e488d08499c786d542463609, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: bfbbe718aac3aa246a00fd6c9db6525f, type: 3}
     - part: 5
       sprite: {fileID: 21300000, guid: f90d3c4ae7e3b8146ad3768c31a719e4, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 6cad377ef91e9a949987c32f1e0e6833, type: 3}
     - part: 6
       sprite: {fileID: 21300000, guid: 2566244e7c6bb174e85e21a2dce7e13e, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 494a6fbd5976bf44da7510cc92c313dc, type: 3}
     - part: 9
       sprite: {fileID: 21300000, guid: 512123d67dffce640825634eacbe00f8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 74bfe7316e3d3d04bb0cd75c1b21c91f, type: 3}
     - part: 11
       sprite: {fileID: 21300000, guid: 798c68345c63b8249a7880c19bfb55fd, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 13
       sprite: {fileID: 21300000, guid: 824e6adf22d65d546834236e53d2d325, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 14
       sprite: {fileID: 21300000, guid: 3c139661b2199a54f950e142669703ec, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 17
       sprite: {fileID: 21300000, guid: a584589bf3a80174889a80c44dc9ef47, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 16
       sprite: {fileID: 21300000, guid: ded4ec674356f8948920dea0efee153a, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 7
       sprite: {fileID: 21300000, guid: 5e3ce3de8e7fc514dbb389c71d1dc7e8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 8
       sprite: {fileID: 21300000, guid: 5e3ce3de8e7fc514dbb389c71d1dc7e8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 10
       sprite: {fileID: 21300000, guid: 5e3ce3de8e7fc514dbb389c71d1dc7e8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 12
       sprite: {fileID: 21300000, guid: 5e3ce3de8e7fc514dbb389c71d1dc7e8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 15
       sprite: {fileID: 21300000, guid: 5e3ce3de8e7fc514dbb389c71d1dc7e8, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     portrait: {fileID: 21300000, guid: bf5d47cd14691c74692c61f4e5b7b649, type: 3}
   - skinId: stray_black
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 5248039543f65e74bb65dd0f0e7af993, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: e9e6c172f7d2f0e4c838efaee60494d1, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 68a9828ad365cf446a64f724c9eabd8a, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: e10c980b318c73543acc142a35056c06, type: 3}
     - part: 3
       sprite: {fileID: 21300000, guid: a4aa9b85738821146b0fdd97826ddb3a, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 4e058fc637b4dc84a8c32be8d721582d, type: 3}
     - part: 4
       sprite: {fileID: 21300000, guid: 464790fc929f9b74c8876a7de2ae6f72, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: d8a1077b8b6988542a1d19689d30aff0, type: 3}
     - part: 5
       sprite: {fileID: 21300000, guid: 906f5d08bfc5a2343b7366f6998e7a71, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: f48d27a286ae45f4d81d6e6809c15456, type: 3}
     - part: 6
       sprite: {fileID: 21300000, guid: 20a5645ebb968d44c98c9fd75a63a076, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: de86e865d75bca842bc88355c4190d8b, type: 3}
     - part: 9
       sprite: {fileID: 21300000, guid: eed3171843160fb4ab34f147a65d3e24, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 76dfdb59bca7a7a40820eadc945450c9, type: 3}
     - part: 11
       sprite: {fileID: 21300000, guid: 5268bd62a3360bb4b9403b0af8bbb890, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 13
       sprite: {fileID: 21300000, guid: 0dbc3b9d7f4adbd48a757963aa32c675, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 14
       sprite: {fileID: 21300000, guid: b65919187074a324ba97f4e5fe3e4e8e, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 17
       sprite: {fileID: 21300000, guid: c79b701a21b117f4fb6d772c1fdad990, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 16
       sprite: {fileID: 21300000, guid: d018c673a28954e40b6f3459f4eca8ed, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 7
       sprite: {fileID: 21300000, guid: 3c782d50a493d7547af39e72578d3f57, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 8
       sprite: {fileID: 21300000, guid: 3c782d50a493d7547af39e72578d3f57, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 10
       sprite: {fileID: 21300000, guid: 3c782d50a493d7547af39e72578d3f57, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 12
       sprite: {fileID: 21300000, guid: 3c782d50a493d7547af39e72578d3f57, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 15
       sprite: {fileID: 21300000, guid: 3c782d50a493d7547af39e72578d3f57, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     portrait: {fileID: 21300000, guid: a7ce0d783c47e5b4b99310ced749ee69, type: 3}
   - skinId: stray_mackerel
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 3ebc838ce21af0e44b8ff7250399cd1d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: d26b34519e58828429a6ee484da2d775, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 19356afce1dd0c84395330ee85e5bfc1, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 824bada368a2e084697bcbddd620f104, type: 3}
     - part: 3
       sprite: {fileID: 21300000, guid: f35d8a11855a4da49a8a23e65c996d4f, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: d28648c9d1ec58348b88488e56555fa8, type: 3}
     - part: 4
       sprite: {fileID: 21300000, guid: 14dab83cac6c03149a1a08d71ae36533, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: cd893206567c3fe4aafd65ff4c633454, type: 3}
     - part: 5
       sprite: {fileID: 21300000, guid: 5174b003abce7d44c9ba04fc2a15c6a6, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 6c4e02172072d744793c47e2b542b3d0, type: 3}
     - part: 6
       sprite: {fileID: 21300000, guid: 7df58e50fff226d45a02538a0350e6d1, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 1c9dff2f666044f49bc07d6c0249969b, type: 3}
     - part: 9
       sprite: {fileID: 21300000, guid: c42d1b8c7889a2f4fb917a04a9789d7f, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: bbcdda53dae2b3d4aa858353604570a2, type: 3}
     - part: 11
       sprite: {fileID: 21300000, guid: 074151c527508fa408e4179d09cb83f5, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 13
       sprite: {fileID: 21300000, guid: f1fe14c5fa624d347b31816bfff0910e, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 14
       sprite: {fileID: 21300000, guid: f8d284f8cf1ed2249aaee3ddf5eeb617, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 17
       sprite: {fileID: 21300000, guid: 05505045da582a94a8d9c08e5a1ffc0b, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 16
       sprite: {fileID: 21300000, guid: 18e344d3af9d8884d96ce8e18f89e68b, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 7
       sprite: {fileID: 21300000, guid: 564009a0628e8b2419b91fc8fa284a56, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 8
       sprite: {fileID: 21300000, guid: 564009a0628e8b2419b91fc8fa284a56, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 10
       sprite: {fileID: 21300000, guid: 564009a0628e8b2419b91fc8fa284a56, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 12
       sprite: {fileID: 21300000, guid: 564009a0628e8b2419b91fc8fa284a56, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 15
       sprite: {fileID: 21300000, guid: 564009a0628e8b2419b91fc8fa284a56, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     portrait: {fileID: 21300000, guid: 32d584a1f6101d849bd13320e0970d9b, type: 3}
   - skinId: stray_calico
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 990d32a7c353e6d4b88cadebcb0dd538, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 3a15f8a7b4fb3cb48aa3edea979b07ed, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 50f2f13adf5f1064c8d3718867cf34f2, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: a2afd402c8b73574db928a1de40447a4, type: 3}
     - part: 3
       sprite: {fileID: 21300000, guid: eb0a8d3fee14fc74d882174fe0c080ed, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 7ee646a2d2161274d8575979c636daf1, type: 3}
     - part: 4
       sprite: {fileID: 21300000, guid: 25381809fe9f1a549a4c119c0d88ff16, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 36331a8291894d74f8cbae8164fc1909, type: 3}
     - part: 5
       sprite: {fileID: 21300000, guid: 29d3997c36cf65849a5bfd13a157122d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 51575eae1933e8345bf1aef030a77ca5, type: 3}
     - part: 6
       sprite: {fileID: 21300000, guid: b53e4f30d63c6b44daddc4b12505cdf0, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 81dbf06dab0584540a36fdb1e4eb112f, type: 3}
     - part: 9
       sprite: {fileID: 21300000, guid: d07557de3f1e0b24db510ce34301823d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 24562cbc9a2791a46b75856c1be1fb29, type: 3}
     - part: 11
       sprite: {fileID: 21300000, guid: 156421fdbbc013a4bb820e4bfe7e0108, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 13
       sprite: {fileID: 21300000, guid: 319b96a03dc8c18429567c32f53faaab, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 14
       sprite: {fileID: 21300000, guid: f1251f0fc7aecd449bcdbfdd0ec2b206, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 17
       sprite: {fileID: 21300000, guid: 06ada3f480c73874ea55eb78c4746135, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 16
       sprite: {fileID: 21300000, guid: 2178759c961e14046bea04239534a23f, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 7
       sprite: {fileID: 21300000, guid: 9746ea9719b982c4297a109e697ae226, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 8
       sprite: {fileID: 21300000, guid: 9746ea9719b982c4297a109e697ae226, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 10
       sprite: {fileID: 21300000, guid: 9746ea9719b982c4297a109e697ae226, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 12
       sprite: {fileID: 21300000, guid: 9746ea9719b982c4297a109e697ae226, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 15
       sprite: {fileID: 21300000, guid: 9746ea9719b982c4297a109e697ae226, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     portrait: {fileID: 21300000, guid: 892d893c464c90c4baba789c82fada52, type: 3}
   - skinId: stray_tuxedo
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 8a641e7e41605df46a801f23c6963421, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 5784cd5dca6a2f5428f3a564ec2909b3, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 1e9e3ff7adb926d4f8a81a896c5fcc7d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: f3ce69fdc558c114d9a1c193abdea0cc, type: 3}
     - part: 3
       sprite: {fileID: 21300000, guid: 5139bd8e5715ab247a9d6255fd79cd6c, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 13b535a0ef2b238408623fe4054e2d0e, type: 3}
     - part: 4
       sprite: {fileID: 21300000, guid: 346166e25b0af0f4c8cd10f1b8f110ce, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: bf356726bb2cd7a43a3a8dac870c1e2e, type: 3}
     - part: 5
       sprite: {fileID: 21300000, guid: e794532e48a19284c85d64e7eae1dee3, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 85736e0c4da414b4bae209afb5ab2203, type: 3}
     - part: 6
       sprite: {fileID: 21300000, guid: 5b572857e106148438cea4e4c28cf74b, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 577a6d8c898e6d94593a2575f61894a8, type: 3}
     - part: 9
       sprite: {fileID: 21300000, guid: b584031ecdfb7ca49b0760d8eb0e7284, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 7991e6bb82616c94593ef999e075f418, type: 3}
     - part: 11
       sprite: {fileID: 21300000, guid: fe6f7fdef867bb542a9bd91c4f57fe5c, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 13
       sprite: {fileID: 21300000, guid: 2470578d8da26f8459ee34cd38167be3, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 14
       sprite: {fileID: 21300000, guid: 6a63c471fcd508040aec729079f0758b, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 17
       sprite: {fileID: 21300000, guid: f4989a7aee4c88240939e9bec4d0b419, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 16
       sprite: {fileID: 21300000, guid: 45331c4583108634a866a8bc24179cb5, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 7
       sprite: {fileID: 21300000, guid: 5dcb43f8140dea64e901e0b68a755206, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 8
       sprite: {fileID: 21300000, guid: 5dcb43f8140dea64e901e0b68a755206, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 10
       sprite: {fileID: 21300000, guid: 5dcb43f8140dea64e901e0b68a755206, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 12
       sprite: {fileID: 21300000, guid: 5dcb43f8140dea64e901e0b68a755206, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 15
       sprite: {fileID: 21300000, guid: 5dcb43f8140dea64e901e0b68a755206, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     portrait: {fileID: 21300000, guid: feb11735818374a49ae61639c8cf99eb, type: 3}
   - skinId: stray_white
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: e4dc35db4a3fcd846a27734be0206630, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 85159481c2881cc4f89cca57565a4417, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: e75debbc288624a44803b937929a319b, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 68345bb329e76fc43b913905885ecd1f, type: 3}
     - part: 3
       sprite: {fileID: 21300000, guid: ec6f84a43ea6efe4d9653519e9301609, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 1787e44dc3e36b24f85c0f8e9b0bb62f, type: 3}
     - part: 4
       sprite: {fileID: 21300000, guid: 710bdad7a61fece44b1b59d3722c6a8c, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 89426e8dfd58e9b46862052a02fd6714, type: 3}
     - part: 5
       sprite: {fileID: 21300000, guid: 9f08c48b7947101469ebe55709a65f04, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 91ae4a828530dfc4d9b8d8d9d2b1a798, type: 3}
     - part: 6
       sprite: {fileID: 21300000, guid: dd9471314b155bc46a6b9b276c9f07c5, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 79848ed3f0a133b4cab4221945221ea7, type: 3}
     - part: 9
       sprite: {fileID: 21300000, guid: f6da7a7bcf6524d49a5b3deb75ca327c, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: a728ecb1944f89c4bada01efa7e24d37, type: 3}
     - part: 11
       sprite: {fileID: 21300000, guid: 031d93430d1fb6046a5130e3f609492b, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 13
       sprite: {fileID: 21300000, guid: 22951dcf597080949bee56ea825afc0a, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 14
       sprite: {fileID: 21300000, guid: 46aff3b4c165c5c42bd10382a56ff0e4, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 17
       sprite: {fileID: 21300000, guid: fd1083da7b24b1f4a93a87de7e79b487, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 16
       sprite: {fileID: 21300000, guid: 5194443057f1d7a4982c16789199e858, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 7
       sprite: {fileID: 21300000, guid: 583a49535f3b94f4f8aa139288a8c62d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 8
       sprite: {fileID: 21300000, guid: 583a49535f3b94f4f8aa139288a8c62d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 10
       sprite: {fileID: 21300000, guid: 583a49535f3b94f4f8aa139288a8c62d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 12
       sprite: {fileID: 21300000, guid: 583a49535f3b94f4f8aa139288a8c62d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 15
       sprite: {fileID: 21300000, guid: 583a49535f3b94f4f8aa139288a8c62d, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     portrait: {fileID: 21300000, guid: a19f85ca49e62c941b966a9e057c7e46, type: 3}
   - skinId: stray_siamese
     parts:
     - part: 1
       sprite: {fileID: 21300000, guid: 2324943fa4cb8234cb998944de6a6118, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 6108cf4cd799d724289ff072a33e1995, type: 3}
     - part: 2
       sprite: {fileID: 21300000, guid: 2570ff49e200d7c41b5d100987a3d365, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: e4e0c66223cb1fd4d999fe29951e4493, type: 3}
     - part: 3
       sprite: {fileID: 21300000, guid: d12f0ba621ab6ac4db5b980268e5e4d0, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: eae75d0bd9513d34cad371f0db6dbfe1, type: 3}
     - part: 4
       sprite: {fileID: 21300000, guid: 045b3c7a1d92301489b33bc3de5830fd, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 5523473e05f500142bca33587a07364d, type: 3}
     - part: 5
       sprite: {fileID: 21300000, guid: 9d0f4e674bcbb24458e39e81b4f13903, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 303962cb15562ef4887c5c97bac0c706, type: 3}
     - part: 6
       sprite: {fileID: 21300000, guid: 9b76444f5f7a3184b97785815c5ce74f, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 0db4c3fb1aff70d49b1db080312b5bc0, type: 3}
     - part: 9
       sprite: {fileID: 21300000, guid: 2738b613e6a014b45b7eb018944a2337, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 21300000, guid: 88f0b4453bd3f8e409b4e5ef621e9bc0, type: 3}
     - part: 11
       sprite: {fileID: 21300000, guid: 98bc8e9d2a0a80b42938b7ab21759a35, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 13
       sprite: {fileID: 21300000, guid: b653a9152ef05e542a18de96328bcefc, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 14
       sprite: {fileID: 21300000, guid: edd1d98c15c16914e89869d953b310b7, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 17
       sprite: {fileID: 21300000, guid: 7b0a5fcb85051354fb54f1917bba9834, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 16
       sprite: {fileID: 21300000, guid: 7beb503eb9d14cb47ac45141faf68bd4, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 7
       sprite: {fileID: 21300000, guid: 4c5c349ad80eaf14fa9c3141187275ed, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 8
       sprite: {fileID: 21300000, guid: 4c5c349ad80eaf14fa9c3141187275ed, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 10
       sprite: {fileID: 21300000, guid: 4c5c349ad80eaf14fa9c3141187275ed, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 12
       sprite: {fileID: 21300000, guid: 4c5c349ad80eaf14fa9c3141187275ed, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     - part: 15
       sprite: {fileID: 21300000, guid: 4c5c349ad80eaf14fa9c3141187275ed, type: 3}
       joint: {x: 0, y: 0}
+      outline: {fileID: 0}
     portrait: {fileID: 21300000, guid: 058af5874ede0154fb973dcb57442b6a, type: 3}
