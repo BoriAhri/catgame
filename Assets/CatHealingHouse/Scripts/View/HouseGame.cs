@@ -103,6 +103,13 @@ namespace CatHealingHouse.View
         private float _lastZoomPresence;
         // 가까이 보기 (쓰다듬기)
         public Petting Petting { get; private set; }
+        public Intimacy Intimacy { get; private set; }
+        // 레벨업 알림은 쓰다듬기·간식 알림 뒤에 잠깐 있다가 띄운다
+        private string _levelUpText;
+        private float _levelUpAt;
+
+        /// <summary>오늘 날짜 번호 (간식 하루 횟수용, 기기 시계 기준).</summary>
+        private static int TodayIndex() => (int)(System.DateTime.Now.Date - new System.DateTime(2020, 1, 1)).TotalDays;
         private PetTouch _pet;
         private CatView _petCandidate;
         private bool _petting;
@@ -330,6 +337,16 @@ namespace CatHealingHouse.View
             Workshop.Changed += () => _viewsDirty = true;
             Skills = new ButlerSkills(Economy, Strays);
             Petting = new Petting(Sim, Economy.Wallet, Strays);
+            Intimacy = new Intimacy(Economy.Wallet);
+            Petting.Intimacy = Intimacy;
+            Intimacy.LevelUp += (c, lv) =>
+            {
+                _levelUpText = $"{c.Name} 친밀도 Lv.{lv} 달성! 스킬 포인트 +1";
+                _levelUpAt = Time.time + 1.6f;
+                var lvView = ViewOf(c);
+                if (lvView != null) lvView.Say($"친밀도 Lv.{lv}!");
+                _saveSoon = true;
+            };
             Petting.SkillLevel = () => Skills.Level(ButlerSkills.GentleHands);
             _pet = gameObject.AddComponent<PetTouch>();
             _pet.Cam = _cam;
@@ -349,7 +366,13 @@ namespace CatHealingHouse.View
             };
             Strays.FirstDiscovered += p => Say($"새 길냥이 발견: {p.Name}!");
             Strays.BecameReady += (c, p) => Say($"{p.Name}가 문 앞에서 기다려요. 탭해서 들여보내 주세요!");
-            Strays.Adopted += (c, p) => { Say($"{p.Name}가 우리 집 고양이가 됐어요! ({c.Personality.DisplayName})"); FitCamera(); };
+            Strays.Adopted += (c, p) =>
+            {
+                Intimacy.OnAdopted(c, p.Temperament, p.Affection);
+                string bonus = c.IntimacyLevel > 1 ? $" 친밀도 Lv.{c.IntimacyLevel}부터 시작해요!" : "";
+                Say($"{p.Name}가 우리 집 고양이가 됐어요! ({c.Personality.DisplayName}){bonus}");
+                FitCamera();
+            };
             Strays.Left += p => { if (CurrentBoard == BoardId.Outdoor && p.Affection >= 30) Say($"{p.Name}가 돌아갔어요. 또 올 거예요."); };
             // 중요한 일이 생기면 곧 저장 (영입, 구매·배치, 제작, 스킬)
             Strays.Adopted += (c, p) => { _saveSoon = true; SoundKit.Play("fanfare"); };
@@ -674,6 +697,13 @@ namespace CatHealingHouse.View
 
             HandleZoom();
             HandlePointer();
+
+            if (_levelUpText != null && Time.time >= _levelUpAt)
+            {
+                Say(_levelUpText);
+                SoundKit.Play("fanfare", 0.7f);
+                _levelUpText = null;
+            }
         }
 
         private void Say(string msg)
@@ -1092,7 +1122,7 @@ namespace CatHealingHouse.View
         private Cat _profileCat;
         private float _profileOpenedAt;
         private Rect _profileRectGui;
-        private const float ProfileH = 372f;
+        private const float ProfileH = 432f;
 
         private void EnsureStyles()
         {
@@ -1333,7 +1363,7 @@ namespace CatHealingHouse.View
                     SoundKit.Play("meow", 0.8f, 0.95f + (cat.Id % 5) * 0.04f);
                 }
                 GUI.Label(new Rect(18, y + 2, UiWidth - 36, 24),
-                    $"{cat.Name} <color=#A08876>({cat.Personality.DisplayName})</color>  {CatView.ActivityText(cat, f)}  <color=#D9788A>기분 {cat.Mood:0}{mood}</color>", _small);
+                    $"{cat.Name} <color=#E08A3C>Lv.{cat.IntimacyLevel}</color> <color=#A08876>({cat.Personality.DisplayName})</color>  {CatView.ActivityText(cat, f)}  <color=#D9788A>기분 {cat.Mood:0}{mood}</color>", _small);
                 float bx = 18, bwid = (UiWidth - 36 - 3 * 10) / 4f;
                 foreach (var nd in CatNeeds.All)
                 {
@@ -1390,7 +1420,7 @@ namespace CatHealingHouse.View
 
             var f = cat.HasTarget ? World.GetFurniture(cat.TargetFurnitureId) : null;
             float tx = pc.xMax + 14, tw = r.xMax - tx - 60;
-            GUI.Label(new Rect(tx, r.y + 14, tw, 34), $"<size=24>{cat.Name}</size>", _menuTitle);
+            GUI.Label(new Rect(tx, r.y + 14, tw + 50, 34), $"<size=24>{cat.Name}</size>   <size=18><color=#E08A3C>친밀도 Lv.{cat.IntimacyLevel}</color></size>", _menuTitle);
             GUI.Label(new Rect(tx, r.y + 48, tw + 50, 24), $"<color=#C0603F>{cat.Personality.DisplayName}</color>  {CatView.ActivityText(cat, f)}", _menuTitle);
             if (!string.IsNullOrEmpty(cat.Personality.Description))
                 GUI.Label(new Rect(tx, r.y + 74, r.xMax - tx - 14, 40), cat.Personality.Description, _shopSmall);
@@ -1412,8 +1442,35 @@ namespace CatHealingHouse.View
                 i++;
             }
 
+            // 친밀도: 경험치 바 + 간식 주기
+            float iy = r.y + 236;
+            bool maxLv = Intimacy.IsMax(cat);
+            string sp = cat.SkillPoints > 0 ? $"   <size=14><color=#5E9C4C>스킬 포인트 {cat.SkillPoints}</color></size>" : "";
+            GUI.Label(new Rect(r.x + 14, iy, r.width - 200, 26), maxLv
+                ? $"친밀도 Lv.{cat.IntimacyLevel} <size=14>(최대)</size>{sp}"
+                : $"친밀도 Lv.{cat.IntimacyLevel}  <size=14><color=#A08876>{System.Math.Floor(cat.IntimacyExp):0} / {Intimacy.Need(cat.IntimacyLevel)}</color></size>{sp}", _menuTitle);
+            var ebar = new Rect(r.x + 14, iy + 32, r.width - 28 - 180, 14);
+            GUI.DrawTexture(ebar, Solid(SdfCanvas.Col("#EADBC6")));
+            GUI.DrawTexture(new Rect(ebar.x, ebar.y, ebar.width * (float)Intimacy.Progress(cat), ebar.height), Solid(SdfCanvas.Col("#F2B05E")));
+            var snackBtn = new Rect(r.xMax - 14 - 168, iy + 2, 168, 52);
+            int today = TodayIndex();
+            bool canPay = Economy.Wallet.Money >= Intimacy.Tuning.SnackCost;
+            double nextExp = maxLv ? 0 : Intimacy.NextSnackExp(cat, today);
+            if (GUI.Button(snackBtn, $"간식 주기\n<size=13>{Intimacy.Tuning.SnackCost}원 · 친밀도 +{nextExp:0.#}</size>", canPay ? _btn : _btnOff))
+            {
+                var res = Intimacy.FeedSnack(cat, today, out var gotExp);
+                if (res == SnackResult.Ok)
+                {
+                    Say(maxLv ? $"{cat.Name}가 간식을 냠냠!" : $"{cat.Name}가 간식을 냠냠! 친밀도 +{gotExp:0.#}");
+                    if (cv != null) cv.Say("맛있다!");
+                    SoundKit.Play("heart");
+                    _saveSoon = true;
+                }
+                else { Say($"돈이 모자라요 (간식 {Intimacy.Tuning.SnackCost}원)"); SoundKit.Play("click"); }
+            }
+
             // 옷 입히기
-            float cy = r.y + 236;
+            float cy = r.y + 296;
             GUI.Label(new Rect(r.x + 14, cy, 200, 24), "옷 입히기", _menuTitle);
             float cx = r.x + 14;
             foreach (var id in Costumes.All)

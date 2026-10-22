@@ -277,6 +277,7 @@ namespace CatHealingHouse.View
             if (s.MoodGiven > 0.5) parts.Add($"기분 +{s.MoodGiven:0}");
             if (s.AffectionGiven > 0) parts.Add($"호감도 +{s.AffectionGiven:0}");
             if (s.HeartsGiven > 0) parts.Add($"젤리 하트 +{s.HeartsGiven}");
+            if (s.ExpGiven > 0) parts.Add($"친밀도 +{s.ExpGiven:0}");
             return parts.Count == 0 ? "푹 만족했어요!" : "푹 만족했어요! " + string.Join(", ", parts);
         }
 

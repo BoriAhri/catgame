@@ -114,6 +114,7 @@ namespace CatHealingHouse.Cats
         public long HeartsGiven;
         public double AffectionGiven;
         public bool HeartOnCooldown;
+        public double ExpGiven;
 
         internal PetSession(Cat cat, bool stray, Func<PetZone, PetFeel> feel, double gainScale)
         {
@@ -137,6 +138,8 @@ namespace CatHealingHouse.Cats
         public readonly PetTuning Tuning;
         /// <summary>능숙한 손길 레벨 (없으면 0).</summary>
         public Func<int> SkillLevel = () => 0;
+        /// <summary>친밀도 (있으면 만족으로 끝낸 집 고양이에게 경험치를 조금 준다).</summary>
+        public Intimacy Intimacy;
 
         public Petting(CatSimulation sim, Wallet wallet, StraySystem strays, PetTuning tuning = null)
         {
@@ -221,7 +224,7 @@ namespace CatHealingHouse.Cats
                 s.Cat.PetFatigueAt = Now;
             }
             if (annoy > 0) s.Annoyance = Math.Min(1, s.Annoyance + length * Tuning.AnnoyPerUnit * annoy);
-            // 만족도가 반쯤 차면 스스로 발라당
+            // 만족도가 RollAt 만큼 차면 스스로 발라당
             if (!s.Rolled && s.Satisfaction >= Tuning.RollAt && s.Satisfaction < 1 - 1e-9) { s.Rolled = true; s.BellyUp = true; }
 
             if (s.Annoyance >= 1) Finish(s, PetEnd.Annoyed);
@@ -265,6 +268,11 @@ namespace CatHealingHouse.Cats
                 }
                 else s.HeartOnCooldown = true;
                 if (s.IsStray && Strays != null) s.AffectionGiven = Strays.PetBonus(cat, Tuning.StrayBonusAffection);
+                if (!s.IsStray && Intimacy != null && !Intimacy.IsMax(cat))
+                {
+                    s.ExpGiven = Intimacy.Tuning.PetExp;
+                    Intimacy.Gain(cat, s.ExpGiven);
+                }
             }
             else if (end == PetEnd.Annoyed)
             {

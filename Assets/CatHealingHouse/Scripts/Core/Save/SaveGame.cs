@@ -19,6 +19,7 @@ namespace CatHealingHouse.Save
         public string Name; public string LookKey; public int StrayId; public string Personality; public string Costume;
         public double Hunger, Bladder, Energy, Fun, Mood; public int Board; public int Q, R;
         public double PetFatigue, PetFatigueAgo, PetHeartWait;
+        public int IntimacyLevel; public double IntimacyExp; public int SkillPoints, SnackDay, SnacksToday;
     }
     [Serializable] public sealed class StraySave { public int Id; public double Affection; public int Visits, Meals; public bool Discovered, Adopted; }
     [Serializable] public sealed class CountSave { public string Id; public int Count; }
@@ -98,6 +99,8 @@ namespace CatHealingHouse.Save
                     Board = (int)c.Cell.Board, Q = c.Cell.Coord.Q, R = c.Cell.Coord.R,
                     PetFatigue = c.PetFatigue, PetFatigueAgo = g.Sim.SimTime - c.PetFatigueAt,
                     PetHeartWait = Math.Max(0, c.PetHeartAt - g.Sim.SimTime),
+                    IntimacyLevel = c.IntimacyLevel, IntimacyExp = c.IntimacyExp, SkillPoints = c.SkillPoints,
+                    SnackDay = c.SnackDay, SnacksToday = c.SnacksToday,
                 });
             }
             if (g.Strays != null)
@@ -175,6 +178,11 @@ namespace CatHealingHouse.Save
                 cat.PetFatigue = cs.PetFatigue;
                 cat.PetFatigueAt = g.Sim.SimTime - cs.PetFatigueAgo;
                 cat.PetHeartAt = cs.PetHeartWait > 0 ? g.Sim.SimTime + cs.PetHeartWait : double.NegativeInfinity;
+                cat.IntimacyLevel = Math.Max(1, cs.IntimacyLevel); // 예전 저장은 0 → Lv.1
+                cat.IntimacyExp = cs.IntimacyExp;
+                cat.SkillPoints = cs.SkillPoints;
+                cat.SnackDay = cs.SnackDay;
+                cat.SnacksToday = cs.SnacksToday;
                 cats.Add(cat);
             }
 

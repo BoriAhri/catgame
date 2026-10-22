@@ -124,6 +124,16 @@ namespace CatHealingHouse.Cats
         /// <summary>이 시각(SimTime)부터 다시 젤리 하트를 준다.</summary>
         public double PetHeartAt = double.NegativeInfinity;
 
+        // 친밀도 (Intimacy)
+        /// <summary>친밀도 레벨 1~99.</summary>
+        public int IntimacyLevel = 1;
+        /// <summary>지금 레벨 안에서 모은 경험치.</summary>
+        public double IntimacyExp;
+        /// <summary>쓰지 않은 스킬 포인트 (레벨업마다 1).</summary>
+        public int SkillPoints;
+        /// <summary>간식 하루 횟수 세기 (SnackDay 날짜에 SnacksToday 번).</summary>
+        public int SnackDay, SnacksToday;
+
 
         /// <summary>겉모습 열쇠 (저장·불러오기 때 같은 그림을 다시 고르려고). 화면 쪽에서 정한다.</summary>
         public string LookKey;
