@@ -52,6 +52,9 @@ namespace CatHealingHouse.Cats
         /// <summary>이 칸에 창문 햇빛이 들어오는지 (환경 시스템이 설정). 없으면 햇빛 쬐기 없음.</summary>
         public Func<Cell, bool> IsSunny;
 
+        /// <summary>지금 밤인지 (환경 시스템이 설정). 밤에는 우다다가 잦다.</summary>
+        public Func<bool> IsNight;
+
         public event Action<Cat> CatAdded;
         public event Action<Cat> CatRemoved;
 
@@ -207,20 +210,32 @@ namespace CatHealingHouse.Cats
                     double roll = _rng.NextDouble();
                     if (roll < groom)
                     {
-                        cat.State = CatState.Grooming;
-                        cat.StateTimer = Tuning.GroomSeconds;
+                        if (_rng.NextDouble() < Tuning.EarScratchChance) StartAct(cat, CatAct.EarScratch);
+                        else
+                        {
+                            cat.State = CatState.Grooming;
+                            cat.StateTimer = Tuning.GroomSeconds;
+                        }
                     }
                     // 급한 욕구가 있는데 채울 가구가 없으면 멍때리지 않고 서성인다
                     else if (roll < groom + (1 - groom) * lounge && !AnyUrgent(cat)) StartLounge(cat);
-                    else StartWander(cat);
+                    else StartWander(cat, mayZoom: true);
                     return;
 
                 case CatState.Lounging:
                     cat.LoungeTimer -= dt;
-                    if (cat.Lounge == LoungeKind.Lie) cat.Needs.Add(NeedType.Energy, Tuning.LieEnergyPerSecond * dt);
+                    if (cat.IsLyingDown) cat.Needs.Add(NeedType.Energy, Tuning.LieEnergyPerSecond * dt);
                     // 급한 욕구가 생기면 멍을 멈추고 간다
                     if (AnyUrgent(cat) && TryChooseTarget(cat)) { EndLounge(cat); return; }
-                    if (cat.LoungeTimer <= 0) { EndLounge(cat); EnterIdle(cat, 0.5, 1.5); return; }
+                    if (cat.LoungeTimer <= 0)
+                    {
+                        bool lay = cat.IsLyingDown;
+                        EndLounge(cat);
+                        EnterIdle(cat, 0.5, 1.5);
+                        // 누워 있다 일어나면 가끔 기지개 쭉
+                        if (lay && _rng.NextDouble() < Tuning.LieStretchChance) StartAct(cat, CatAct.Stretch);
+                        return;
+                    }
                     if (cat.Sunbathing)
                     {
                         cat.AddMood(Tuning.SunMoodPerSecond * dt);
@@ -257,6 +272,15 @@ namespace CatHealingHouse.Cats
                     if (cat.StateTimer <= 0) EnterIdle(cat);
                     return;
 
+                case CatState.Acting:
+                    cat.StateTimer -= dt;
+                    if (AnyUrgent(cat) && TryChooseTarget(cat)) return;
+                    if (cat.StateTimer > 0) return;
+                    // 기지개 다음엔 하품
+                    if (cat.Act == CatAct.Stretch) { StartAct(cat, CatAct.Yawn); return; }
+                    EnterIdle(cat, 0.5, 1.5);
+                    return;
+
                 case CatState.MovingToTarget:
                     UpdateMoving(cat);
                     return;
@@ -276,7 +300,7 @@ namespace CatHealingHouse.Cats
                     {
                         // 가구 위에서 멍: 정해진 시간이 끝나거나 급한 욕구가 생기면 내려온다
                         cat.UseTime += dt;
-                        if (cat.Lounge == LoungeKind.Lie || f.Def.Interaction == InteractionType.Enter)
+                        if (cat.IsLyingDown || f.Def.Interaction == InteractionType.Enter)
                             cat.Needs.Add(NeedType.Energy, Tuning.LieEnergyPerSecond * dt);
                         if (cat.UseTime >= cat.LoungeTimer || AnyUrgent(cat)) BeginExit(cat);
                         return;
@@ -342,6 +366,8 @@ namespace CatHealingHouse.Cats
                 cat.TargetFurnitureId = best.Id;
                 cat.TargetNeed = need;
                 cat.State = CatState.MovingToTarget;
+                cat.Act = CatAct.None;
+                cat.Zoomies = false;
                 return true;
             }
 
@@ -401,6 +427,10 @@ namespace CatHealingHouse.Cats
             var f = World.GetFurniture(cat.TargetFurnitureId);
             // 멍때리러 갔던 건 가구를 '사용'한 게 아니라서 트레이·하트가 없다
             bool completed = f != null && !cat.LoungeVisit;
+            // 잠자리에서 자고 나왔거나 가구 위에 누워 있다 내려오면 기지개
+            bool slept = completed && cat.TargetNeed == NeedType.Energy
+                || cat.LoungeVisit && f != null && (cat.IsLyingDown || f.Def.Interaction == InteractionType.Enter);
+            double stretchChance = completed ? Tuning.WakeStretchChance : Tuning.LieStretchChance;
             cat.LoungeVisit = false;
             cat.Lounge = LoungeKind.None;
             ReleaseTarget(cat);
@@ -415,6 +445,16 @@ namespace CatHealingHouse.Cats
                 if (outs.Count > 0) StartHop(cat, outs[_rng.Next(outs.Count)]);
             }
             EnterIdle(cat, 0.5, 1.5);
+            if (slept && _rng.NextDouble() < stretchChance) StartAct(cat, CatAct.Stretch);
+        }
+
+        /// <summary>짧은 몸짓을 시작한다 (기지개·하품·귀 긁기). 끝나면 잠깐 멍.</summary>
+        public void StartAct(Cat cat, CatAct act)
+        {
+            cat.State = CatState.Acting;
+            cat.Act = act;
+            cat.Zoomies = false;
+            cat.StateTimer = act == CatAct.Stretch ? Tuning.StretchSeconds : act == CatAct.Yawn ? Tuning.YawnSeconds : Tuning.EarScratchSeconds;
         }
 
         private void ReleaseTarget(Cat cat)
@@ -448,11 +488,14 @@ namespace CatHealingHouse.Cats
                 && TryGoToSun(cat, Tuning.SunSearchRadius))
             {
                 cat.Sunbathing = true;
-                cat.Lounge = _rng.NextDouble() < 0.8 ? LoungeKind.Lie : LoungeKind.Sit;
+                double pick = _rng.NextDouble();
+                cat.Lounge = pick < Tuning.SprawlChance ? LoungeKind.Sprawl : pick < 0.85 ? LoungeKind.Lie : LoungeKind.Sit;
                 cat.LoungeTimer = Range(Tuning.SunLoungeMinSeconds, Tuning.SunLoungeMaxSeconds) * Math.Max(0.6, cat.Personality.IdleScale);
                 return;
             }
 
+            cat.Act = CatAct.None;
+            cat.Zoomies = false;
             if (_rng.NextDouble() < Tuning.LoungeFurnitureChance && TryReserveLoungeSpot(cat))
             {
                 cat.LoungeVisit = true;
@@ -545,11 +588,24 @@ namespace CatHealingHouse.Cats
 
         // ───────────────────────── 배회 ─────────────────────────
 
-        private void StartWander(Cat cat)
+        private void StartWander(Cat cat, bool mayZoom = false)
         {
             cat.State = CatState.Wandering;
+            cat.Act = CatAct.None;
+            cat.Zoomies = mayZoom && WantsZoomies(cat);
+            if (cat.Zoomies) { cat.WanderStepsLeft = _rng.Next(Tuning.ZoomiesMinSteps, Tuning.ZoomiesMaxSteps + 1); return; }
             int steps = _rng.Next(Tuning.WanderMinSteps, Tuning.WanderMaxSteps + 1);
             cat.WanderStepsLeft = Math.Max(1, (int)Math.Round(steps * cat.Personality.WanderScale));
+        }
+
+        /// <summary>우다다 할 기분인지: 기운이 넘치고, 밤이거나 에너자이저일 때 확률로.</summary>
+        private bool WantsZoomies(Cat cat)
+        {
+            if (cat.Affiliation != Affiliation.Resident || cat.Needs.Energy < Tuning.ZoomiesMinEnergy || AnyUrgent(cat)) return false;
+            double p = 0;
+            if (IsNight != null && IsNight()) p += Tuning.ZoomiesNightChance;
+            if (cat.Personality.Id == "energizer") p += Tuning.ZoomiesEnergizerChance;
+            return p > 0 && _rng.NextDouble() < p;
         }
 
         private void EnterIdle(Cat cat) => EnterIdle(cat, Tuning.IdleMinSeconds, Tuning.IdleMaxSeconds);
@@ -557,6 +613,8 @@ namespace CatHealingHouse.Cats
         private void EnterIdle(Cat cat, double min, double max)
         {
             cat.State = CatState.Idle;
+            cat.Act = CatAct.None;
+            cat.Zoomies = false;
             cat.StateTimer = Range(min, max) * cat.Personality.IdleScale;
         }
 
@@ -624,6 +682,13 @@ namespace CatHealingHouse.Cats
             cat.Cell = next;
             cat.HopProgress = 0;
             cat.HopDuration = Tuning.HopSeconds / Math.Max(0.1, cat.Personality.MoveSpeed * cat.SpeedJitter);
+            if (cat.Zoomies && cat.State == CatState.Wandering)
+            {
+                // 우다다: 훨씬 빠르게, 신나지만 기운이 든다
+                cat.HopDuration *= Tuning.ZoomiesHopScale;
+                cat.Needs.Add(NeedType.Fun, Tuning.ZoomiesFunPerStep);
+                cat.Needs.Add(NeedType.Energy, -Tuning.ZoomiesEnergyPerStep);
+            }
             CatHopped?.Invoke(cat);
         }
 

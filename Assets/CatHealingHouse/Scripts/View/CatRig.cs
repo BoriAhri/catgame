@@ -6,7 +6,9 @@ using UnityEngine.Rendering;
 namespace CatHealingHouse.View
 {
     /// <summary>고양이 몸짓 종류. CatView 가 고양이 상태에서 골라 넘긴다.</summary>
-    public enum CatPose { Idle, Walk, Run, Sleep, Eat, Litter, Groom, Sit, Hide, Lie, SitIdle }
+    public enum CatPose { Idle, Walk, Run, Sleep, Eat, Litter, Groom, Sit, Hide, Lie, SitIdle,
+        // 몸짓: 기지개, 하품, 옆으로 길게 눕기, 뒷발로 귀 긁기, 우다다 질주
+        Stretch, Yawn, Sprawl, EarScratch, Zoom }
 
     /// <summary>쓰다듬을 때 눈 (0 평소, 1 반쯤 감음, 2 웃는 눈, 3 감음).</summary>
     public enum PetEyes { Normal, Half, Happy, Closed }
@@ -69,7 +71,16 @@ namespace CatHealingHouse.View
             _renderers[CatPart.EyesHappy].enabled = false;
             _renderers[CatPart.Blush].color = new Color(1, 1, 1, 0);
             if (_renderers.ContainsKey(CatPart.BellyBody)) _renderers[CatPart.BellyBody].enabled = false;
+            if (_renderers.ContainsKey(CatPart.MouthOpen)) _renderers[CatPart.MouthOpen].enabled = false;
         }
+
+        // 자세가 바뀔 때 직전 모습에서 부드럽게 넘어가기
+        private const float BlendSeconds = 0.25f;
+        private bool _hasPose, _blending;
+        private CatPose _lastPose;
+        private float _poseStart;
+        private readonly Dictionary<CatPart, (Vector3 pos, Quaternion rot, Vector3 scale)> _snap = new Dictionary<CatPart, (Vector3, Quaternion, Vector3)>();
+        private static float Smooth(float x) => x * x * (3f - 2f * x);
 
         // ── 쓰다듬기 반응 (PetTouch 가 목표를 정하면 부드럽게 따라간다) ──
         public bool PetActive;
@@ -136,6 +147,19 @@ namespace CatHealingHouse.View
         public void Animate(CatPose pose, float hop, float time)
         {
             float t = time + _phase;
+
+            // 자세가 바뀌었으면 지금 모습을 찍어 두고 그 모습에서 새 자세로 섞는다
+            if (!_hasPose || pose != _lastPose)
+            {
+                _blending = _hasPose;
+                _hasPose = true;
+                _lastPose = pose;
+                _poseStart = time;
+                if (_blending) foreach (var kv in _bones) _snap[kv.Key] = (kv.Value.localPosition, kv.Value.localRotation, kv.Value.localScale);
+            }
+            float pt = time - _poseStart;
+            float mouth = 0f;
+            int poseEyes = 0;
 
             // 기본 자세로 되돌리기
             foreach (var kv in _bones)
@@ -294,10 +318,144 @@ namespace CatHealingHouse.View
                     Pos(CatPart.Tail, new Vector3(0.02f, -0.08f, 0));
                     break;
                 }
+                case CatPose.Stretch:
+                {
+                    // 기지개: 앞발을 앞으로 쭉 뻗고 가슴을 낮추고 엉덩이를 든다. 끝날 무렵 천천히 돌아온다
+                    float a = Smooth(Mathf.Clamp01(pt / 0.6f)) * Smooth(Mathf.Clamp01((2.4f - pt) / 0.5f));
+                    float shiver = Mathf.Sin(t * 30f) * 0.8f * a;
+                    Rot(CatPart.Body, -14f * a + shiver * 0.4f);
+                    Pos(CatPart.Body, new Vector3(0, 0.012f * a, 0));
+                    foreach (var leg in new[] { CatPart.LegFrontNear, CatPart.LegFrontFar })
+                    {
+                        Rot(leg, 66f * a + shiver);
+                        Pos(leg, new Vector3(0.01f * a, -0.06f * a, 0));
+                        Scale(leg, 1f, 1f + 0.25f * a);
+                    }
+                    foreach (var leg in new[] { CatPart.LegBackNear, CatPart.LegBackFar })
+                    {
+                        Pos(leg, new Vector3(0, 0.03f * a, 0));
+                        Scale(leg, 1f, 1f + 0.25f * a);
+                    }
+                    Pos(CatPart.Head, new Vector3(0.05f * a, -0.10f * a, 0));
+                    Rot(CatPart.Head, 10f * a);
+                    Pos(CatPart.Tail, new Vector3(0, 0.05f * a, 0));
+                    Rot(CatPart.Tail, -40f * a + Mathf.Sin(t * 2f) * 4f);
+                    tipCurl = -10f * a;
+                    eyesClosed = eyesClosed || a > 0.6f;
+                    break;
+                }
+                case CatPose.Yawn:
+                {
+                    // 하품: 앉아서 고개를 들고 입을 크게 벌린다. 눈은 꼭 감고 귀는 살짝 뒤로
+                    float o = Smooth(Mathf.Clamp01((pt - 0.2f) / 0.45f)) * Smooth(Mathf.Clamp01((1.7f - pt) / 0.4f));
+                    Scale(CatPart.LegBackNear, 1f, 0.5f);
+                    Scale(CatPart.LegBackFar, 1f, 0.5f);
+                    Pos(CatPart.Body, new Vector3(0, -0.015f, 0));
+                    Rot(CatPart.Body, 10f);
+                    Rot(CatPart.Head, 4f + 20f * o);
+                    Pos(CatPart.Head, new Vector3(-0.01f, 0.005f + 0.012f * o, 0));
+                    Rot(CatPart.EarL, 16f * o);
+                    Rot(CatPart.EarR, 8f * o);
+                    Pos(CatPart.Tail, new Vector3(0.06f, -0.1f, 0));
+                    Rot(CatPart.Tail, -55f + Mathf.Sin(t * 0.9f) * 6f);
+                    tipCurl = -35f;
+                    mouth = o;
+                    eyesClosed = eyesClosed || o > 0.25f;
+                    break;
+                }
+                case CatPose.EarScratch:
+                {
+                    // 뒷발로 귀 긁기: 앉아서 고개를 숙이고, 가까운 뒷발을 귀 뒤로 올려 빠르게 긁긁
+                    float a = Smooth(Mathf.Clamp01(pt / 0.35f));
+                    float k = Mathf.Sin(t * 26f);
+                    Scale(CatPart.LegBackFar, 1f, 0.5f);
+                    Pos(CatPart.Body, new Vector3(0, -0.02f * a, 0));
+                    Rot(CatPart.Body, 14f * a);
+                    Rot(CatPart.Head, -10f * a + k * 1.5f * a);
+                    Pos(CatPart.Head, new Vector3(-0.03f * a, -0.05f * a, 0));
+                    Pos(CatPart.LegBackNear, new Vector3(0.04f * a, 0.12f * a, 0));
+                    Rot(CatPart.LegBackNear, 165f * a + k * 9f * a);
+                    Scale(CatPart.LegBackNear, 1f, 1f + 0.9f * a);
+                    Rot(CatPart.EarL, 12f * a);
+                    Pos(CatPart.Tail, new Vector3(0.06f * a, -0.1f * a, 0));
+                    Rot(CatPart.Tail, -50f * a + Mathf.Sin(t * 1.4f) * 6f);
+                    tipCurl = -30f * a;
+                    if (a > 0.5f) poseEyes = 1;
+                    break;
+                }
+                case CatPose.Sprawl:
+                {
+                    // 옆으로 길게: 몸을 늘여 바닥에 붙이고, 앞발은 앞으로 뒷발은 뒤로 쭉, 머리도 바닥에 누인다
+                    float br = Mathf.Sin(t * 1.3f);
+                    Pos(CatPart.Body, new Vector3(0, -0.07f, 0));
+                    Scale(CatPart.Body, 1.16f, 0.66f + br * 0.02f);
+                    foreach (var leg in new[] { CatPart.LegFrontNear, CatPart.LegFrontFar })
+                    {
+                        Rot(leg, 82f);
+                        Pos(leg, new Vector3(0.07f, -0.085f, 0));
+                        Scale(leg, 1f, 1.25f);
+                    }
+                    foreach (var leg in new[] { CatPart.LegBackNear, CatPart.LegBackFar })
+                    {
+                        Rot(leg, -78f);
+                        Pos(leg, new Vector3(-0.06f, -0.085f, 0));
+                        Scale(leg, 1f, 1.2f);
+                    }
+                    Pos(CatPart.Head, new Vector3(0.08f, -0.17f, 0));
+                    Rot(CatPart.Head, -14f + Mathf.Sin(t * 0.4f) * 2f);
+                    Pos(CatPart.Tail, new Vector3(0f, -0.1f, 0));
+                    Rot(CatPart.Tail, 48f + Mathf.Sin(t * 0.7f) * 5f);
+                    tipCurl = 8f;
+                    eyesClosed = eyesClosed || Mathf.Repeat(t, 9f) < 6.5f;
+                    break;
+                }
+                case CatPose.Zoom:
+                {
+                    // 우다다: 귀를 뒤로 젖히고 꼬리를 부풀려 세운 채 전력 질주 (앞발끼리, 뒷발끼리 모아 뛴다)
+                    float ph = hop * Mathf.PI * 4f;
+                    float swing = Mathf.Sin(ph) * 44f;
+                    Rot(CatPart.LegFrontNear, swing);
+                    Rot(CatPart.LegFrontFar, swing * 0.8f);
+                    Rot(CatPart.LegBackNear, -swing);
+                    Rot(CatPart.LegBackFar, -swing * 0.8f);
+                    float bob = Mathf.Abs(Mathf.Sin(ph)) * 0.025f;
+                    Pos(CatPart.Body, new Vector3(0, bob, 0));
+                    Rot(CatPart.Body, Mathf.Sin(ph) * 5f);
+                    Scale(CatPart.Body, 1.05f, 0.96f);
+                    Pos(CatPart.Head, new Vector3(0.015f, bob * 1.2f - 0.01f, 0));
+                    Rot(CatPart.Head, -4f);
+                    Rot(CatPart.EarL, 38f);
+                    Rot(CatPart.EarR, 30f);
+                    Scale(CatPart.EarL, 1f, 0.8f);
+                    Scale(CatPart.EarR, 1f, 0.8f);
+                    Rot(CatPart.Tail, -28f + Mathf.Sin(ph) * 6f);
+                    Scale(CatPart.Tail, 1.45f, 1.05f);
+                    tipCurl = -10f;
+                    break;
+                }
             }
 
             // 꼬리 끝: 한 박자 늦게 휘어 부드러운 S자
             if (_bones.ContainsKey(CatPart.TailTip)) Rot(CatPart.TailTip, Mathf.Sin(t * 1.6f - 0.9f) * 14f + tipCurl);
+
+            // 자세 전환: 찍어 둔 직전 모습에서 새 자세로 섞는다
+            if (_blending)
+            {
+                float b = Mathf.Clamp01(pt / BlendSeconds);
+                if (b >= 1f) _blending = false;
+                else
+                {
+                    b = Smooth(b);
+                    foreach (var kv in _bones)
+                    {
+                        if (!_snap.TryGetValue(kv.Key, out var sn)) continue;
+                        var tr = kv.Value;
+                        tr.localPosition = Vector3.Lerp(sn.pos, tr.localPosition, b);
+                        tr.localRotation = Quaternion.Slerp(sn.rot, tr.localRotation, b);
+                        tr.localScale = Vector3.Lerp(sn.scale, tr.localScale, b);
+                    }
+                }
+            }
 
             // 쓰다듬기 반응: 자세 위에 얹는다
             float dt = Time.deltaTime;
@@ -399,6 +557,12 @@ namespace CatHealingHouse.View
                 if (_costume != null && _costumeWorn) _costume.enabled = bodyOn || _costumePart == CatPart.Head;
             }
 
+            if (_renderers.ContainsKey(CatPart.MouthOpen))
+            {
+                _renderers[CatPart.MouthOpen].enabled = mouth > 0.05f && !BellyShown;
+                _bones[CatPart.MouthOpen].localScale = new Vector3(1f + 0.1f * mouth, 0.3f + 0.7f * mouth, 1f);
+            }
+            if (eyes == 0 && poseEyes != 0) eyes = poseEyes;
             _renderers[CatPart.Blush].color = new Color(1, 1, 1, Mathf.Clamp01(_pBlush));
             _renderers[CatPart.EyesOpen].enabled = !eyesClosed && eyes == 0;
             _renderers[CatPart.EyesClosed].enabled = eyesClosed || eyes == 3;

@@ -313,6 +313,7 @@ namespace CatHealingHouse.View
             Clock = new DayClock(7);
             Sim.Stepped += dt => Clock.Advance(dt);
             Sim.IsSunny = c => c.Board == BoardId.Indoor && Daylight.Kind(Clock.Hour) == LightKind.Sun && LitNow().Contains(c.Coord);
+            Sim.IsNight = () => Daylight.Kind(Clock.Hour) != LightKind.Sun;
             Economy = new HouseEconomy(Sim, seed: System.Environment.TickCount + 1);
             Economy.Changed += () => _viewsDirty = true;
             Economy.ItemSentToTray += OnItemSentToTray;

@@ -423,12 +423,14 @@ namespace CatHealingHouse.View
 
         private static CatPose PoseFor(Cat cat, FurnitureInstance f, float inside)
         {
-            if (cat.IsHopping) return CatPose.Walk;
-            if (cat.State == CatState.Lounging) return cat.Lounge == LoungeKind.Lie ? CatPose.Lie : CatPose.SitIdle;
+            if (cat.IsHopping) return cat.Zoomies ? CatPose.Zoom : CatPose.Walk;
+            if (cat.State == CatState.Lounging) return cat.Lounge == LoungeKind.Sprawl ? CatPose.Sprawl : cat.Lounge == LoungeKind.Lie ? CatPose.Lie : CatPose.SitIdle;
+            if (cat.State == CatState.Acting)
+                return cat.Act == CatAct.Stretch ? CatPose.Stretch : cat.Act == CatAct.Yawn ? CatPose.Yawn : CatPose.EarScratch;
             if (cat.LoungeVisit && cat.State == CatState.Using && f != null)
             {
                 if (f.Def.Interaction == InteractionType.Enter) return CatPose.Hide;
-                return cat.Lounge == LoungeKind.Lie ? CatPose.Lie : CatPose.Sit;
+                return cat.IsLyingDown ? CatPose.Lie : CatPose.Sit;
             }
             if (cat.Affiliation == Affiliation.Stray && cat.Activity > 0)
             {
@@ -496,13 +498,15 @@ namespace CatHealingHouse.View
                     default: return "";
                 }
             }
-            if (cat.Sunbathing) return cat.State == CatState.ToSpot ? "햇빛 자리로" : "햇빛 쬐는 중";
-            if (cat.State == CatState.Lounging) return cat.Lounge == LoungeKind.Lie ? "누워서 멍~" : "앉아서 멍~";
+            if (cat.Sunbathing) return cat.State == CatState.ToSpot ? "햇빛 자리로" : cat.Lounge == LoungeKind.Sprawl ? "햇빛에 쭉 늘어짐" : "햇빛 쬐는 중";
+            if (cat.State == CatState.Lounging) return cat.IsLyingDown ? "누워서 멍~" : "앉아서 멍~";
+            if (cat.State == CatState.Acting) return cat.Act == CatAct.Stretch ? "기지개 쭈욱~" : cat.Act == CatAct.Yawn ? "하아암~" : "귀 긁긁";
+            if (cat.Zoomies) return "우다다다!";
             if (cat.LoungeVisit && f != null)
             {
                 if (cat.State == CatState.Using)
                     return f.Def.Interaction == InteractionType.Enter ? $"{f.Def.DisplayName}에서 멍~"
-                         : cat.Lounge == LoungeKind.Lie ? $"{f.Def.DisplayName} 위에 나른" : $"{f.Def.DisplayName} 위에서 멍~";
+                         : cat.IsLyingDown ? $"{f.Def.DisplayName} 위에 나른" : $"{f.Def.DisplayName} 위에서 멍~";
                 if (cat.State == CatState.MovingToTarget) return $"{f.Def.DisplayName}(으)로 쉬러";
             }
             switch (cat.State)

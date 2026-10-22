@@ -47,3 +47,7 @@ sysinfo.txt
 # OS
 .DS_Store
 Thumbs.db
+
+# 크래시 복구 백업 씬
+/Assets/_Recovery/
+/Assets/_Recovery.meta

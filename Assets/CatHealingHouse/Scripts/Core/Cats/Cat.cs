@@ -13,10 +13,13 @@ namespace CatHealingHouse.Cats
     public enum StrayReaction { None, Alert, Curious, Love }
 
     /// <summary>실내 고양이 행동 상태. 가구 사용은 Entering → Using → Exiting 세 구간으로 나눈다.</summary>
-    public enum CatState { Idle, Wandering, MovingToTarget, Entering, Using, Exiting, Grooming, Lounging, ToSpot }
+    public enum CatState { Idle, Wandering, MovingToTarget, Entering, Using, Exiting, Grooming, Lounging, ToSpot, Acting }
+
+    /// <summary>짧은 몸짓 (Acting 상태에서): 기지개 → 하품, 뒷발로 귀 긁기.</summary>
+    public enum CatAct { None, Stretch, Yawn, EarScratch }
 
     /// <summary>멍때리기 자세. 욕구와 상관없이 그냥 쉬는 것 (빈칸 또는 캣타워·숨숨집 등 위에서).</summary>
-    public enum LoungeKind { None, Sit, Lie }
+    public enum LoungeKind { None, Sit, Lie, Sprawl }
 
     /// <summary>심즈식 욕구: 100 = 충족, 0 = 결핍.</summary>
     [Serializable]
@@ -134,6 +137,12 @@ namespace CatHealingHouse.Cats
         public bool LoungeVisit;
         /// <summary>창문 햇빛 속에서 멍때리는 중 (빛이 옮겨가면 따라간다).</summary>
         public bool Sunbathing;
+        /// <summary>지금 하는 짧은 몸짓 (State == Acting 일 때).</summary>
+        public CatAct Act;
+        /// <summary>우다다 중 (산책이 빠르고 길어진다).</summary>
+        public bool Zoomies;
+        /// <summary>누워 있는 멍 (식빵 눕기 또는 옆으로 길게).</summary>
+        public bool IsLyingDown => Lounge == LoungeKind.Lie || Lounge == LoungeKind.Sprawl;
         /// <summary>ToSpot 상태에서 남은 경로 (햇빛 칸까지).</summary>
         public System.Collections.Generic.List<Cell> SpotPath;
 

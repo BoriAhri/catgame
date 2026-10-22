@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using CatHealingHouse.Furniture;
 
 namespace CatHealingHouse.Cats
@@ -37,6 +37,19 @@ namespace CatHealingHouse.Cats
         public int SunFollowRadius = 4;
         public double GroomChance = 0.15;
         public double GroomSeconds = 3.0;
+
+        // 몸짓: 자고 일어나면 기지개 → 하품, 그루밍 대신 가끔 뒷발로 귀 긁기, 햇빛 속에서 옆으로 길게
+        public double StretchSeconds = 2.4, YawnSeconds = 1.8, EarScratchSeconds = 2.2;
+        public double WakeStretchChance = 0.85;   // 잠자리에서 자고 나오면
+        public double LieStretchChance = 0.5;     // 누워서 멍이 끝나면
+        public double EarScratchChance = 0.35;    // 그루밍할 차례에 귀 긁기
+        public double SprawlChance = 0.55;        // 햇빛 쬘 때 옆으로 길게 눕기
+
+        // 우다다: 밤이거나 에너자이저일 때, 기운이 넘치면 가끔 집 안을 빠르게 질주
+        public double ZoomiesNightChance = 0.3, ZoomiesEnergizerChance = 0.15, ZoomiesMinEnergy = 60;
+        public int ZoomiesMinSteps = 8, ZoomiesMaxSteps = 14;
+        public double ZoomiesHopScale = 0.4;      // 한 칸 걸음 시간 배율 (작을수록 빠름)
+        public double ZoomiesFunPerStep = 1.5, ZoomiesEnergyPerStep = 0.6;
 
         // 욕구: 이 값 아래로 떨어지면 가구를 찾아간다
         public double NeedThreshold = 45;

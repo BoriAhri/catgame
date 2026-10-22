@@ -17,6 +17,8 @@ namespace CatHealingHouse.View.Art
         TailTip,
         // 발라당 (등을 대고 누워 배를 보이는 몸 + 위로 든 네 발 + 꼬리. 이때 평소 몸·다리·꼬리는 숨긴다)
         BellyBody,
+        // 하품할 때 벌린 입 (머리에 매달림, 평소엔 꺼져 있음)
+        MouthOpen,
     }
 
     /// <summary>
@@ -47,6 +49,7 @@ namespace CatHealingHouse.View.Art
             { CatPart.EyesHalf, new Vector2(0.66f, 0.535f) },
             { CatPart.EyesHappy, new Vector2(0.66f, 0.535f) },
             { CatPart.Blush, new Vector2(0.66f, 0.48f) },
+            { CatPart.MouthOpen, new Vector2(0.66f, 0.475f) },
             { CatPart.LegFrontNear, new Vector2(0.56f, 0.215f) },
             { CatPart.LegFrontFar, new Vector2(0.49f, 0.215f) },
             { CatPart.LegBackNear, new Vector2(0.32f, 0.215f) },
@@ -64,7 +67,8 @@ namespace CatHealingHouse.View.Art
                 case CatPart.EyesClosed:
                 case CatPart.EyesHalf:
                 case CatPart.EyesHappy:
-                case CatPart.Blush: return CatPart.Head;
+                case CatPart.Blush:
+                case CatPart.MouthOpen: return CatPart.Head;
                 case CatPart.TailTip: return CatPart.Tail;
                 default: return null;
             }
@@ -383,6 +387,18 @@ namespace CatHealingHouse.View.Art
                         c.Fill(Circle(pc.x, pc.y + 0.024f, 0.007f), A(Pink, 0.95f));
                         c.Fill(Circle(pc.x + 0.018f, pc.y + 0.017f, 0.007f), A(Pink, 0.95f));
                     }
+                    break;
+                }
+
+                case CatPart.MouthOpen:
+                {
+                    // 하아암: 세로로 크게 벌린 입, 분홍 혀, 작은 송곳니 (입꼬리 피벗이 위라 세로로 늘리면 아래로 벌어진다)
+                    c.Bounds = new Rect(0.6f, 0.38f, 0.12f, 0.12f);
+                    var mouth = Ellipse(0.66f, 0.443f, 0.027f, 0.034f);
+                    c.Fill(mouth, Col("#7A3442"), Line, 0.006f);
+                    c.Fill(Intersect(Ellipse(0.66f, 0.418f, 0.022f, 0.016f), mouth), Col("#F08A9A"));
+                    c.Fill(Triangle(new Vector2(0.642f, 0.47f), new Vector2(0.652f, 0.47f), new Vector2(0.646f, 0.456f), 0.002f), Color.white);
+                    c.Fill(Triangle(new Vector2(0.668f, 0.47f), new Vector2(0.678f, 0.47f), new Vector2(0.674f, 0.456f), 0.002f), Color.white);
                     break;
                 }
 
