@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace CatHealingHouse.View
@@ -7,7 +7,7 @@ namespace CatHealingHouse.View
     /// 코드로 만든 임시 소리 (오디오 파일 없이 사인파·잡음으로 합성).
     /// 효과음: pop(버튼), click(작은 버튼·탭), coin(트레이 수확), heart(하트), pickup(털뭉치 줍기),
     /// open(창 열기), purr(골골송), meow(야옹), fanfare(영입·레벨업).
-    /// 배경음: 오르골 느낌의 잔잔한 5음계 멜로디 32초 반복.
+    /// 배경음: Resources/Audio 의 피아노 곡(piano, piano2)을 번갈아 튼다. 파일이 없으면 오르골 멜로디 32초 반복.
     /// 끄기/켜기는 PlayerPrefs 에 기억한다. 나중에 진짜 소리 파일로 바꿔 끼우면 된다.
     /// </summary>
     public sealed class SoundKit : MonoBehaviour
@@ -34,12 +34,36 @@ namespace CatHealingHouse.View
             _sfx = gameObject.AddComponent<AudioSource>();
             _sfx.playOnAwake = false;
             _music = gameObject.AddComponent<AudioSource>();
-            _music.loop = true;
             _music.volume = 0.32f;
             Muted = PlayerPrefs.GetInt("chh_mute", 0) == 1;
             Build();
-            _music.clip = Music();
+            // 배경음 곡 목록: 파일이 있으면 그 곡들을 차례로, 없으면 코드로 만든 오르골
+            foreach (var name in BgmFiles)
+            {
+                var c = Resources.Load<AudioClip>("Audio/" + name);
+                if (c != null) _tracks.Add(c);
+            }
+            if (_tracks.Count == 0) { _music.loop = true; _music.clip = Music(); }
+            else { _music.loop = _tracks.Count == 1; _music.volume = 0.42f; _track = 0; _music.clip = _tracks[0]; }
             if (!Muted) _music.Play();
+        }
+
+        /// <summary>배경음 파일 (Resources/Audio 안, 확장자 없이). 이 순서대로 번갈아 튼다.</summary>
+        private static readonly string[] BgmFiles = { "piano", "piano2" };
+        private readonly List<AudioClip> _tracks = new List<AudioClip>();
+        private int _track;
+        private float _lastTime;
+
+        private void Update()
+        {
+            // 한 곡이 끝나면 다음 곡 (소리를 끈 동안·앱이 잠깐 멈춘 동안은 그대로)
+            if (Muted || _tracks.Count < 2) return;
+            if (_music.isPlaying) { _lastTime = _music.time; return; }
+            if (_music.clip == null || _lastTime < _music.clip.length - 1.5f) return; // 끝까지 간 게 아니면 넘기지 않는다
+            _lastTime = 0f;
+            _track = (_track + 1) % _tracks.Count;
+            _music.clip = _tracks[_track];
+            _music.Play();
         }
 
         public void SetMuted(bool m)
