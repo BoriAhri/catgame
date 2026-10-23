@@ -856,8 +856,8 @@ namespace CatHealingHouse.View
         private HexCoord _previewCoord;
 
         /// <summary>
-        /// 놓기 모드의 터치: 누르고 있는 동안 손가락 칸에 미리보기가 따라다니고,
-        /// 손을 떼면 그 칸에 바로 놓는다 (짧게 탭해도 같다). 두 손가락(확대)이면 놓지 않는다.
+        /// 놓기 모드의 터치: 누르고 있는 동안 손가락 칸에 미리보기가 따라다니고, 손을 떼도 미리보기만 그 자리에 남는다.
+        /// 아래 '설치' 버튼을 눌러야 실제로 놓인다. 두 손가락(확대) 중에는 미리보기를 옮기지 않는다.
         /// </summary>
         private void HandlePlacePointer(Pointer pointer, Vector2 pos)
         {
@@ -875,8 +875,7 @@ namespace CatHealingHouse.View
             }
             else if (_placePressing && pointer.press.wasReleasedThisFrame)
             {
-                _placePressing = false;
-                if (!_placePinched && _hasPreview) PlaceSelectedAt(_previewCoord);
+                _placePressing = false; // 바로 놓지 않는다: '설치' 버튼으로
             }
         }
 
@@ -1236,7 +1235,7 @@ namespace CatHealingHouse.View
             float y = 56;
             if (_mode == Mode.Place || _mode == Mode.Distance)
             {
-                if (GUI.Button(new Rect(UiWidth - 260, y, 100, 40), _mode == Mode.Distance ? "거리 끄기" : "거리맵", _mode == Mode.Distance ? _btnOn : _btn))
+                if (GUI.Button(new Rect(UiWidth - 318, y, 104, 40), _mode == Mode.Distance ? "거리 끄기" : "거리맵", _mode == Mode.Distance ? _btnOn : _btn))
                 {
                     _mode = _mode == Mode.Distance ? Mode.Place : Mode.Distance;
                     Say(_mode == Mode.Distance ? "고양이가 쓸 수 있는 가구를 탭하세요." : "가구를 골라 놓을 칸을 탭하세요.");
@@ -1897,10 +1896,17 @@ namespace CatHealingHouse.View
             if (sprite != null) CuteArt.DrawSprite(new Rect(14, area.y + 16, 80, 70), sprite);
             GUI.Label(new Rect(104, area.y + 10, 300, 28), $"<b>{d.DisplayName}</b>", _placeTitle);
             GUI.Label(new Rect(104, area.y + 38, 320, 56),
-                (stock > 0 ? $"보관함에서 꺼내요 ({stock}개)" : $"놓으면 {Shop.PriceOf(d):N0}원") + "\n탭하면 바로 놓여요 · 누른 채 끌면 미리보기", _label);
+                (stock > 0 ? $"보관함에서 꺼내요 ({stock}개)" : $"설치하면 {Shop.PriceOf(d):N0}원") + "\n끌어서 자리를 고르고 '설치'를 누르세요", _label);
             if (GUI.Button(new Rect(UiWidth - 230, area.y + 96, 104, 44), _mirrored ? "반전 켬" : "반전", _mirrored ? _btnOn : _btn)) { _mirrored = !_mirrored; if (_hasPreview) ShowPreviewAt(_previewCoord); }
             if (GUI.Button(new Rect(UiWidth - 118, area.y + 96, 108, 44), "취소", _btn)) { SetMode(Mode.Play); Say("놓기를 취소했어요."); }
-            if (GUI.Button(new Rect(14, area.y + 96, 150, 44), "다른 가구", _btn)) { SetMode(Mode.Play); _shopOpen = true; _shopTab = 0; }
+            if (GUI.Button(new Rect(14, area.y + 96, 120, 44), "다른 가구", _btn)) { SetMode(Mode.Play); _shopOpen = true; _shopTab = 0; }
+            // 설치: 미리보기 자리가 놓을 수 있는 곳일 때만
+            bool canPlace = _hasPreview && World.CanPlace(d, CurrentBoard, _previewCoord, _mirrored) == PlaceResult.Ok;
+            if (GUI.Button(new Rect(142, area.y + 92, UiWidth - 142 - 238, 52), "설치", canPlace ? _btnOn : _btnOff))
+            {
+                if (canPlace) { PlaceSelectedAt(_previewCoord); SoundKit.Play("pop"); }
+                else Say(_hasPreview ? "여기엔 못 놓아요. 다른 자리로 끌어 보세요." : "먼저 놓을 자리를 터치해서 골라 주세요.");
+            }
         }
 
         private readonly Dictionary<Color, Texture2D> _solid = new Dictionary<Color, Texture2D>();
