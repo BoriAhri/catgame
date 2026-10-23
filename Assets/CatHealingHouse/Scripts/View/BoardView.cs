@@ -66,8 +66,9 @@ namespace CatHealingHouse.View
         public bool PlaceMirrored;
         private static readonly Color PlaceableTint = SdfCanvas.Col("#B8F07A");
         private static readonly Color BlockedTint = SdfCanvas.Col("#E5534B");
-        private static readonly Color PreviewOk = new Color(0.55f, 0.85f, 0.45f, 0.62f);
-        private static readonly Color PreviewBad = new Color(0.92f, 0.32f, 0.28f, 0.62f);
+        // 놓을 가구가 차지할 칸: 하늘색 (놓을 수 없는 자리면 조금 옅게, 가구 그림은 붉게)
+        private static readonly Color PreviewOk = new Color(0.45f, 0.80f, 1.00f, 0.92f);
+        private static readonly Color PreviewBad = new Color(0.45f, 0.80f, 1.00f, 0.6f);
 
         // 미리보기 (고스트): 반투명 가구 그림 + 차지할 칸 표시 + 입구 칸 발바닥
         private SpriteRenderer _ghost;
