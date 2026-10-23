@@ -669,6 +669,8 @@ namespace CatHealingHouse.View
                 // 육각형 칸은 가구를 놓을 때(와 거리맵)만 보인다
                 v.ShowGrid = _mode == Mode.Place || _mode == Mode.Distance;
                 v.MarkOccupied = _mode == Mode.Place;
+                v.PlaceDef = _mode == Mode.Place ? _selectedDef : null;
+                v.PlaceMirrored = _mirrored;
                 if (_mode != Mode.Place) v.HidePreview();
                 v.Refresh(_mode == Mode.Distance ? map : null, _distanceFurnitureId);
                 v.ShowWallSlots(_mode == Mode.Place ? _selectedDef : null);
@@ -1897,7 +1899,7 @@ namespace CatHealingHouse.View
             GUI.Label(new Rect(104, area.y + 10, 300, 28), $"<b>{d.DisplayName}</b>", _placeTitle);
             GUI.Label(new Rect(104, area.y + 38, 320, 56),
                 (stock > 0 ? $"보관함에서 꺼내요 ({stock}개)" : $"설치하면 {Shop.PriceOf(d):N0}원") + "\n끌어서 자리를 고르고 '설치'를 누르세요", _label);
-            if (GUI.Button(new Rect(UiWidth - 230, area.y + 96, 104, 44), _mirrored ? "반전 켬" : "반전", _mirrored ? _btnOn : _btn)) { _mirrored = !_mirrored; if (_hasPreview) ShowPreviewAt(_previewCoord); }
+            if (GUI.Button(new Rect(UiWidth - 230, area.y + 96, 104, 44), _mirrored ? "반전 켬" : "반전", _mirrored ? _btnOn : _btn)) { _mirrored = !_mirrored; RefreshViews(); if (_hasPreview) ShowPreviewAt(_previewCoord); }
             if (GUI.Button(new Rect(UiWidth - 118, area.y + 96, 108, 44), "취소", _btn)) { SetMode(Mode.Play); Say("놓기를 취소했어요."); }
             if (GUI.Button(new Rect(14, area.y + 96, 120, 44), "다른 가구", _btn)) { SetMode(Mode.Play); _shopOpen = true; _shopTab = 0; }
             // 설치: 미리보기 자리가 놓을 수 있는 곳일 때만

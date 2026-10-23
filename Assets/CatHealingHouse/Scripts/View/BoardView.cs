@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CatHealingHouse.Economy;
 using CatHealingHouse.Furniture;
 using CatHealingHouse.Hex;
@@ -61,6 +61,11 @@ namespace CatHealingHouse.View
         /// <summary>놓기 중: 이미 가구가 있는 칸을 빨간색으로 표시한다.</summary>
         public bool MarkOccupied;
         private static readonly Color OccupiedTint = SdfCanvas.Col("#E98A80");
+        /// <summary>놓기 모드: 고른 가구 (칸마다 여기에 놓을 수 있는지 연두/빨강으로 칠한다).</summary>
+        public FurnitureDef PlaceDef;
+        public bool PlaceMirrored;
+        private static readonly Color PlaceableTint = SdfCanvas.Col("#B8F07A");
+        private static readonly Color BlockedTint = SdfCanvas.Col("#E5534B");
         private static readonly Color PreviewOk = new Color(0.55f, 0.85f, 0.45f, 0.62f);
         private static readonly Color PreviewBad = new Color(0.92f, 0.32f, 0.28f, 0.62f);
 
@@ -265,6 +270,13 @@ namespace CatHealingHouse.View
                 tg.Top.enabled = show;
                 tg.Side.enabled = show;
                 if (ShowGrid && tile.Kind == TileKind.Floor) c.a = isRug || tile.Furniture != null ? 0.8f : 0.55f;
+                // 놓기 모드: 이 칸에 고른 가구를 놓을 수 있으면 밝은 연두, 안 되면 빨강 (벽 가구는 벽 표시로 대신)
+                if (ShowGrid && PlaceDef != null && !PlaceDef.WallMounted && tile.Kind == TileKind.Floor)
+                {
+                    bool ok = _world.CanPlace(PlaceDef, _boardId, tile.Coord, PlaceMirrored) == PlaceResult.Ok;
+                    c = ok ? PlaceableTint : BlockedTint;
+                    c.a = ok ? 0.78f : 0.62f;
+                }
                 _mpb.SetColor("_Color", c);
                 tg.Top.SetPropertyBlock(_mpb);
                 _mpb.SetColor("_Color", Darken(c, 0.78f));
